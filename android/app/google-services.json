@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "612462694102",
+    "project_id": "psicologia-2f688",
+    "storage_bucket": "psicologia-2f688.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:612462694102:android:17e7d789cd734a357f8377",
+        "android_client_info": {
+          "package_name": "com.example.psicologia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANeExWpMrJ2uEzq-45FjcecyDP4NF39LM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
