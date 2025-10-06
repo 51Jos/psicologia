@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:psicologia/features/autenticacion/vistas/login_vista.dart';
+import 'package:psicologia/features/citas/vistas/lista_cita.dart';
+import 'package:psicologia/features/citas/vistas/formulario_cita_vista.dart';
 class RutasApp {
   // Prevenir instanciación
   RutasApp._();
@@ -38,7 +40,8 @@ class RutasApp {
   // Mapa de rutas estáticas
   static Map<String, WidgetBuilder> get rutas => {
     login: (_) => const LoginVista(),
-   // listaAtenciones: (_) => const ListaAtencionesVista(),
+    agendarCita: (_) => const FormularioCitaVista(),
+    listaAtenciones: (_) => const ListaCita(),
     //registrarAtencion: (_) => const RegistrarAtencionVista(),
     //listaCitas: (_) => const ListaCitasVista(),
     //agendarCita: (_) => const AgendarCitaVista(),
@@ -112,9 +115,9 @@ class PerfilEstudianteVista extends StatelessWidget {
   final String estudianteId;
   
   const PerfilEstudianteVista({
-    Key? key,
+    super.key,
     required this.estudianteId,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

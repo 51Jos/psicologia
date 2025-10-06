@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Registro de Atenciones Estudiantiles</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 0 0 12px 12px;
+            padding: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .filter-select:hover {
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        /* Estilos para Desktop - Vista de Tabla */
+        .table-view {
+            display: block;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: #f7fafc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 13px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        tbody td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        /* Estilos para Mobile - Vista de Cards */
+        .cards-view {
+            display: none;
+        }
+
+        .student-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+
+        .student-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .student-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #2d3748;
+        }
+
+        .card-info {
+            display: grid;
+            gap: 8px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-view {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-email {
+            background: #ed8936;
+            color: white;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-fc {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-fcs {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .badge-fei {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .badge-fce {
+            background: #feebc8;
+            color: #744210;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-active {
+            background: #48bb78;
+        }
+
+        .status-pending {
+            background: #ed8936;
+        }
+
+        /* Stats */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .table-view {
+                display: none;
+            }
+
+            .cards-view {
+                display: block;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .filters {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .filter-select {
+                flex: 1;
+            }
+
+            .btn-group {
+                width: 100%;
+                display: flex;
+                gap: 10px;
+            }
+
+            .btn {
+                flex: 1;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .filters {
+                flex-direction: column;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Sistema de Registro de Atenciones Estudiantiles</h1>
+            <p>Gestión Integral de Consultas Psicológicas y Seguimiento Académico</p>
+        </div>
+
+        <div class="main-content">
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" placeholder="Buscar por nombre, facultad, programa...">
+                </div>
+                
+                <div class="filters">
+                    <select class="filter-select">
+                        <option>Todas las Facultades</option>
+                        <option>FC - Ciencias</option>
+                        <option>FCS - Ciencias Sociales</option>
+                        <option>FEI - Ingeniería</option>
+                        <option>FCE - Economía</option>
+                    </select>
+                    
+                    <select class="filter-select">
+                        <option>Todos los Estados</option>
+                        <option>Activo</option>
+                        <option>Pendiente</option>
+                        <option>Completado</option>
+                    </select>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary">➕ Nuevo Registro</button>
+                    <button class="btn btn-secondary">📊 Exportar Datos</button>
+                </div>
+            </div>
+
+            <!-- Vista Desktop - Tabla -->
+            <div class="table-view">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre y Apellido</th>
+                            <th>Facultad</th>
+                            <th>Programa</th>
+                            <th>Motivo/Consulta</th>
+                            <th>N° Atención</th>
+                            <th>CIM</th>
+                            <th>Turno</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Observaciones</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Rivera González Mariana</strong></td>
+                            <td><span class="badge badge-fcs">FCS</span></td>
+                            <td>Enfermería</td>
+                            <td>Control de ansiedad - Personal</td>
+                            <td>01</td>
+                            <td>24/3/2025</td>
+                            <td>Mañana</td>
+                            <td>987654321</td>
+                            <td>mariana.rivera@email.com</td>
+                            <td>Primera consulta</td>
+                            <td>
+                                <button class="action-btn btn-view">👁️</button>
+                                <button class="action-btn btn-edit">✏️</button>
+                                <button class="action-btn btn-email">📧</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>López Herrera Ana</strong></td>
+                            <td><span class="badge badge-fei">FEI</span></td>
+                            <td>Contabilidad</td>
+                            <td>Emocional - Problemas</td>
+                            <td>02</td>
+                            <td>11/3/2025</td>
+                            <td>Tarde</td>
+                            <td>987654322</td>
+                            <td>ana.lopez@email.com</td>
+                            <td>Seguimiento de caso</td>
+                            <td>
+                                <button class="action-btn btn-view">👁️</button>
+                                <button class="action-btn btn-edit">✏️</button>
+                                <button class="action-btn btn-email">📧</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Vásquez Mendoza Gema</strong></td>
+                            <td><span class="badge badge-fc">FC</span></td>
+                            <td>Biología</td>
+                            <td>Emocional</td>
+                            <td>01</td>
+                            <td>1/4/2025</td>
+                            <td>Mañana</td>
+                            <td>987654323</td>
+                            <td>gema.vasquez@email.com</td>
+                            <td>-</td>
+                            <td>
+                                <button class="action-btn btn-view">👁️</button>
+                                <button class="action-btn btn-edit">✏️</button>
+                                <button class="action-btn btn-email">📧</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Herrera Díaz Miguel</strong></td>
+                            <td><span class="badge badge-fcs">FCS</span></td>
+                            <td>Psicología</td>
+                            <td>Problemas</td>
+                            <td>01</td>
+                            <td>4/4/2025</td>
+                            <td>Mañana</td>
+                            <td>987654324</td>
+                            <td>miguel.herrera@email.com</td>
+                            <td>Derivado de tutoría</td>
+                            <td>
+                                <button class="action-btn btn-view">👁️</button>
+                                <button class="action-btn btn-edit">✏️</button>
+                                <button class="action-btn btn-email">📧</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Santo Cruz Nayely</strong></td>
+                            <td><span class="badge badge-fce">FCE</span></td>
+                            <td>Administración</td>
+                            <td>Emocional - Personal</td>
+                            <td>01</td>
+                            <td>11/3/2025</td>
+                            <td>Noche</td>
+                            <td>987654325</td>
+                            <td>nayely.santo@email.com</td>
+                            <td>Consulta nocturna</td>
+                            <td>
+                                <button class="action-btn btn-view">👁️</button>
+                                <button class="action-btn btn-edit">✏️</button>
+                                <button class="action-btn btn-email">📧</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Vista Mobile - Cards -->
+            <div class="cards-view">
+                <div class="student-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="student-name">Rivera González Mariana</div>
+                            <span class="badge badge-fcs">FCS</span>
+                        </div>
+                        <span class="status-indicator status-active"></span>
+                    </div>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span class="info-label">Programa:</span>
+                            <span class="info-value">Enfermería</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Motivo:</span>
+                            <span class="info-value">Control de ansiedad</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Atención:</span>
+                            <span class="info-value">#01 - 24/3/2025</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Turno:</span>
+                            <span class="info-value">Mañana</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn btn-view">Ver</button>
+                        <button class="action-btn btn-edit">Editar</button>
+                        <button class="action-btn btn-email">Contactar</button>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="student-name">López Herrera Ana</div>
+                            <span class="badge badge-fei">FEI</span>
+                        </div>
+                        <span class="status-indicator status-pending"></span>
+                    </div>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span class="info-label">Programa:</span>
+                            <span class="info-value">Contabilidad</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Motivo:</span>
+                            <span class="info-value">Emocional - Problemas</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Atención:</span>
+                            <span class="info-value">#02 - 11/3/2025</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Turno:</span>
+                            <span class="info-value">Tarde</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn btn-view">Ver</button>
+                        <button class="action-btn btn-edit">Editar</button>
+                        <button class="action-btn btn-email">Contactar</button>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="student-name">Vásquez Mendoza Gema</div>
+                            <span class="badge badge-fc">FC</span>
+                        </div>
+                        <span class="status-indicator status-active"></span>
+                    </div>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span class="info-label">Programa:</span>
+                            <span class="info-value">Biología</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Motivo:</span>
+                            <span class="info-value">Emocional</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Atención:</span>
+                            <span class="info-value">#01 - 1/4/2025</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Turno:</span>
+                            <span class="info-value">Mañana</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn btn-view">Ver</button>
+                        <button class="action-btn btn-edit">Editar</button>
+                        <button class="action-btn btn-email">Contactar</button>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="student-name">Herrera Díaz Miguel</div>
+                            <span class="badge badge-fcs">FCS</span>
+                        </div>
+                        <span class="status-indicator status-active"></span>
+                    </div>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span class="info-label">Programa:</span>
+                            <span class="info-value">Psicología</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Motivo:</span>
+                            <span class="info-value">Problemas</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Atención:</span>
+                            <span class="info-value">#01 - 4/4/2025</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Turno:</span>
+                            <span class="info-value">Mañana</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn btn-view">Ver</button>
+                        <button class="action-btn btn-edit">Editar</button>
+                        <button class="action-btn btn-email">Contactar</button>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="student-name">Santo Cruz Nayely</div>
+                            <span class="badge badge-fce">FCE</span>
+                        </div>
+                        <span class="status-indicator status-pending"></span>
+                    </div>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span class="info-label">Programa:</span>
+                            <span class="info-value">Administración</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Motivo:</span>
+                            <span class="info-value">Emocional - Personal</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Atención:</span>
+                            <span class="info-value">#01 - 11/3/2025</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Turno:</span>
+                            <span class="info-value">Noche</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn btn-view">Ver</button>
+                        <button class="action-btn btn-edit">Editar</button>
+                        <button class="action-btn btn-email">Contactar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Total Registros</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">FCS</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">FCE</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">FC</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Primeras Atenciones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">Seguimientos</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulación de búsqueda
+        document.querySelector('.search-box input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            // Para vista de tabla
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+            
+            // Para vista de cards
+            const cards = document.querySelectorAll('.student-card');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Filtros
+        document.querySelectorAll('.filter-select').forEach(select => {
+            select.addEventListener('change', function() {
+                console.log('Filtro aplicado:', this.value);
+                // Aquí iría la lógica de filtrado
+            });
+        });
+
+        // Botones de acción
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const action = this.classList[1];
+                console.log('Acción:', action);
+                // Aquí iría la lógica de cada acción
+            });
+        });
+
+        // Detectar cambio de orientación en móvil
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 200);
+        });
+    </script>
+</body>
+</html>

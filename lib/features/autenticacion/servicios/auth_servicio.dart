@@ -35,7 +35,7 @@ class AuthServicio {
       // Agregar dominio según el tipo de acceso
       String email = credenciales.usuario;
       if (!email.contains('@')) {
-        email = '$email@sistema.edu.pe';
+        email = '$email@ucss.pe';
       }
 
       // Autenticar con Firebase
