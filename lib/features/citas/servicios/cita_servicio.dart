@@ -14,9 +14,24 @@ class CitaServicio {
     FiltrosCita? filtros,
     int? limite,
   }) {
-    Query query = _citasRef.orderBy('fechaCreacion', descending: true);
+    Query query = _citasRef;
 
-    // Aplicar filtros
+    // Aplicar filtro de fecha si está presente
+    if (filtros?.fechaInicio != null) {
+      query = query.where('fechaHora', isGreaterThanOrEqualTo: Timestamp.fromDate(filtros!.fechaInicio!));
+    }
+    if (filtros?.fechaFin != null) {
+      query = query.where('fechaHora', isLessThanOrEqualTo: Timestamp.fromDate(filtros!.fechaFin!));
+    }
+
+    // Ordenar por fechaHora si hay filtro de fecha, sino por fechaCreacion
+    if (filtros?.fechaInicio != null || filtros?.fechaFin != null) {
+      query = query.orderBy('fechaHora', descending: false);
+    } else {
+      query = query.orderBy('fechaCreacion', descending: true);
+    }
+
+    // Aplicar otros filtros
     if (filtros != null) {
       if (filtros.facultad != null && filtros.facultad!.isNotEmpty) {
         query = query.where('facultad', isEqualTo: filtros.facultad);
@@ -68,11 +83,16 @@ class CitaServicio {
   // Crear nueva cita
   Future<String?> crearCita(CitaModelo cita) async {
     try {
+      debugPrint('📝 Creando cita en Firestore...');
       final docRef = await _citasRef.add(cita.toFirestore());
+      debugPrint('✅ Cita creada con ID: ${docRef.id}');
       return docRef.id;
-    } catch (e) {
-      debugPrint('Error al crear cita: $e');
-      return null;
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error al crear cita: $e');
+      debugPrint('📍 Stack trace: $stackTrace');
+
+      // Relanzar el error en lugar de retornar null para mejor manejo
+      rethrow;
     }
   }
 

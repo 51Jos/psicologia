@@ -43,6 +43,7 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
 
   // Variables de estado
   String? _facultadSeleccionada;
+  String? _programaSeleccionado;
   DuracionCita _duracionSeleccionada = DuracionCita.minutos45;
   TipoCita _tipoSeleccionado = TipoCita.presencial;
   EstadoCita _estadoSeleccionado = EstadoCita.programada;
@@ -56,6 +57,36 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
   bool _validandoHorario = false;
   String? _conflictoHorario;
 
+  // Variable para almacenar el estudiante seleccionado del autocomplete
+  Map<String, String>? _estudianteSeleccionado;
+
+  // Programas académicos por facultad - UCSS Nueva Cajamarca
+  final Map<String, List<OpcionSelector<String>>> _programasPorFacultad = {
+    'FC': [
+      OpcionSelector(valor: 'Biología', etiqueta: 'Biología'),
+      OpcionSelector(valor: 'Matemática', etiqueta: 'Matemática'),
+    ],
+    'FCS': [
+      OpcionSelector(valor: 'Enfermería', etiqueta: 'Enfermería'),
+      OpcionSelector(valor: 'Psicología', etiqueta: 'Psicología'),
+      OpcionSelector(valor: 'Obstetricia', etiqueta: 'Obstetricia'),
+    ],
+    'FEI': [
+      OpcionSelector(valor: 'Ingeniería Civil', etiqueta: 'Ingeniería Civil'),
+      OpcionSelector(valor: 'Ingeniería de Sistemas', etiqueta: 'Ingeniería de Sistemas'),
+      OpcionSelector(valor: 'Ingeniería Agrónoma', etiqueta: 'Ingeniería Agrónoma'),
+      OpcionSelector(valor: 'Ingeniería Ambiental', etiqueta: 'Ingeniería Ambiental'),
+    ],
+    'FCE': [
+      OpcionSelector(valor: 'Administración', etiqueta: 'Administración'),
+      OpcionSelector(valor: 'Contabilidad', etiqueta: 'Contabilidad'),
+      OpcionSelector(valor: 'Economía', etiqueta: 'Economía'),
+    ],
+    'FD': [
+      OpcionSelector(valor: 'Derecho', etiqueta: 'Derecho'),
+    ],
+  };
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +99,43 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
     super.didChangeDependencies();
     if (!_inicializado) {
       _inicializado = true;
+    }
+  }
+
+  // Método para actualizar los controladores con los datos del estudiante seleccionado
+  void _actualizarDatosEstudiante(Map<String, String> estudiante) {
+    _estudianteSeleccionado = estudiante;
+
+    // Separar nombre y apellidos correctamente
+    _estudianteNombreController.text = estudiante['nombre'] ?? '';
+    _estudianteApellidosController.text = estudiante['apellidos'] ?? '';
+    _estudianteEmailController.text = estudiante['email'] ?? '';
+    _estudianteCodigoController.text = estudiante['codigo'] ?? '';
+    _estudianteTelefonoController.text = estudiante['telefono'] ?? '';
+
+    final programa = estudiante['programa'] ?? '';
+    _programaController.text = programa;
+
+    // Solo asignar la facultad si es una de las opciones válidas
+    final facultad = estudiante['facultad'] ?? '';
+    final facultadesValidas = ['FC', 'FCS', 'FEI', 'FCE', 'FD'];
+    if (facultad.isNotEmpty && facultadesValidas.contains(facultad)) {
+      _facultadSeleccionada = facultad;
+      // Asignar el programa solo si está en la lista de esa facultad
+      if (_programasPorFacultad.containsKey(facultad)) {
+        final programasValidos = _programasPorFacultad[facultad]!
+            .map((op) => op.valor)
+            .toList();
+        if (programa.isNotEmpty && programasValidos.contains(programa)) {
+          _programaSeleccionado = programa;
+        } else {
+          _programaSeleccionado = null;
+        }
+      }
+    } else {
+      // Si no es válida, dejar como null para que el usuario la seleccione
+      _facultadSeleccionada = null;
+      _programaSeleccionado = null;
     }
   }
 
@@ -188,6 +256,8 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
 
   @override
   Widget build(BuildContext context) {
+    final esMovil = MediaQuery.of(context).size.width < 768;
+
     return Form(
       key: _formKey,
       child: Column(
@@ -197,101 +267,193 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
           _buildSeccionTitulo('Información del Estudiante'),
           const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Expanded(
-                child: _buildAutocompleteNombre(),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildAutocompleteApellidos(),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: CampoTexto(
-                  controlador: _estudianteCodigoController,
-                  etiqueta: 'Código de Estudiante',
+          // Nombre y Apellidos - Responsive
+          if (esMovil) ...[
+            _buildAutocompleteNombre(),
+            const SizedBox(height: 16),
+            _buildAutocompleteApellidos(),
+          ] else
+            Row(
+              children: [
+                Expanded(
+                  child: _buildAutocompleteNombre(),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: CampoSelector<String>(
-                  key: ValueKey(_facultadSeleccionada),
-                  etiqueta: 'Facultad',
-                  requerido: true,
-                  valorInicial: _facultadSeleccionada,
-                  opciones: [
-                    OpcionSelector(valor: 'FC', etiqueta: 'FC - Facultad de Ciencias'),
-                    OpcionSelector(valor: 'FCS', etiqueta: 'FCS - Facultad de Ciencias de la Salud'),
-                    OpcionSelector(valor: 'FEI', etiqueta: 'FEI - Facultad de Estudios a Distancia e Ingeniería'),
-                    OpcionSelector(valor: 'FCE', etiqueta: 'FCE - Facultad de Ciencias Económicas'),
-                  ],
-                  onChanged: (valor) {
-                    setState(() {
-                      _facultadSeleccionada = valor;
-                    });
-                  },
-                  validador: (valor) {
-                    if (valor == null) {
-                      return 'La facultad es requerida';
-                    }
-                    return null;
-                  },
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildAutocompleteApellidos(),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
           const SizedBox(height: 16),
 
-          CampoTexto(
-            controlador: _programaController,
-            etiqueta: 'Programa Académico',
-            requerido: true,
-            validador: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'El programa es requerido';
-              }
-              return null;
-            },
-          ),
-
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: CampoTexto(
-                  controlador: _estudianteEmailController,
-                  etiqueta: 'Email',
-                  tipoTeclado: TextInputType.emailAddress,
-                  validador: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                      if (!emailRegex.hasMatch(value)) {
-                        return 'Email inválido';
+          // Código y Facultad - Responsive
+          if (esMovil) ...[
+            CampoTexto(
+              controlador: _estudianteCodigoController,
+              etiqueta: 'Código de Estudiante',
+            ),
+            const SizedBox(height: 16),
+            CampoSelector<String>(
+              key: ValueKey(_facultadSeleccionada),
+              etiqueta: 'Facultad',
+              requerido: true,
+              valorInicial: _facultadSeleccionada,
+              opciones: [
+                OpcionSelector(valor: 'FC', etiqueta: 'Ciencias'),
+                OpcionSelector(valor: 'FCS', etiqueta: 'Ciencias de la Salud'),
+                OpcionSelector(valor: 'FEI', etiqueta: 'Ingeniería'),
+                OpcionSelector(valor: 'FCE', etiqueta: 'Ciencias Económicas'),
+                OpcionSelector(valor: 'FD', etiqueta: 'Derecho'),
+              ],
+              onChanged: (valor) {
+                setState(() {
+                  _facultadSeleccionada = valor;
+                  // Resetear el programa cuando cambia la facultad
+                  _programaSeleccionado = null;
+                  _programaController.text = '';
+                });
+              },
+              validador: (valor) {
+                if (valor == null) {
+                  return 'La facultad es requerida';
+                }
+                return null;
+              },
+            ),
+          ] else
+            Row(
+              children: [
+                Expanded(
+                  child: CampoTexto(
+                    controlador: _estudianteCodigoController,
+                    etiqueta: 'Código de Estudiante',
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CampoSelector<String>(
+                    key: ValueKey(_facultadSeleccionada),
+                    etiqueta: 'Facultad',
+                    requerido: true,
+                    valorInicial: _facultadSeleccionada,
+                    opciones: [
+                      OpcionSelector(valor: 'FC', etiqueta: 'Facultad de Ciencias'),
+                      OpcionSelector(valor: 'FCS', etiqueta: 'Facultad de Ciencias de la Salud'),
+                      OpcionSelector(valor: 'FEI', etiqueta: 'Facultad de Ingeniería'),
+                      OpcionSelector(valor: 'FCE', etiqueta: 'Facultad de Ciencias Económicas'),
+                      OpcionSelector(valor: 'FD', etiqueta: 'Facultad de Derecho'),
+                    ],
+                    onChanged: (valor) {
+                      setState(() {
+                        _facultadSeleccionada = valor;
+                        // Resetear el programa cuando cambia la facultad
+                        _programaSeleccionado = null;
+                        _programaController.text = '';
+                      });
+                    },
+                    validador: (valor) {
+                      if (valor == null) {
+                        return 'La facultad es requerida';
                       }
-                    }
-                    return null;
-                  },
+                      return null;
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: CampoTexto(
-                  controlador: _estudianteTelefonoController,
-                  etiqueta: 'Teléfono',
-                  tipoTeclado: TextInputType.phone,
+              ],
+            ),
+
+          const SizedBox(height: 16),
+
+          // Programa Académico - dinámico según facultad
+          if (_facultadSeleccionada != null && _programasPorFacultad.containsKey(_facultadSeleccionada))
+            CampoSelector<String>(
+              key: ValueKey('$_facultadSeleccionada-$_programaSeleccionado'),
+              etiqueta: 'Programa Académico',
+              requerido: true,
+              valorInicial: _programaSeleccionado,
+              opciones: _programasPorFacultad[_facultadSeleccionada]!,
+              onChanged: (valor) {
+                setState(() {
+                  _programaSeleccionado = valor;
+                  _programaController.text = valor ?? '';
+                });
+              },
+              validador: (valor) {
+                if (valor == null) {
+                  return 'El programa es requerido';
+                }
+                return null;
+              },
+            )
+          else
+            CampoTexto(
+              controlador: _programaController,
+              etiqueta: 'Programa Académico',
+              requerido: true,
+              placeholder: 'Primero selecciona una facultad',
+              habilitado: false,
+              validador: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'El programa es requerido';
+                }
+                return null;
+              },
+            ),
+
+          const SizedBox(height: 16),
+
+          // Email y Teléfono - Responsive
+          if (esMovil) ...[
+            CampoTexto(
+              controlador: _estudianteEmailController,
+              etiqueta: 'Email',
+              tipoTeclado: TextInputType.emailAddress,
+              validador: (value) {
+                if (value != null && value.isNotEmpty) {
+                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Email inválido';
+                  }
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            CampoTexto(
+              controlador: _estudianteTelefonoController,
+              etiqueta: 'Teléfono',
+              tipoTeclado: TextInputType.phone,
+            ),
+          ] else
+            Row(
+              children: [
+                Expanded(
+                  child: CampoTexto(
+                    controlador: _estudianteEmailController,
+                    etiqueta: 'Email',
+                    tipoTeclado: TextInputType.emailAddress,
+                    validador: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                        if (!emailRegex.hasMatch(value)) {
+                          return 'Email inválido';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CampoTexto(
+                    controlador: _estudianteTelefonoController,
+                    etiqueta: 'Teléfono',
+                    tipoTeclado: TextInputType.phone,
+                  ),
+                ),
+              ],
+            ),
 
           const SizedBox(height: 24),
 
@@ -315,51 +477,91 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
 
           const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Expanded(
-                child: CampoFecha(
-                  etiqueta: 'Fecha',
-                  requerido: true,
-                  valorInicial: _fechaSeleccionada,
-                  fechaMinima: DateTime.now(),
-                  fechaMaxima: DateTime.now().add(const Duration(days: 365)),
-                  onChanged: (fecha) {
-                    setState(() {
-                      _fechaSeleccionada = fecha;
-                    });
-                    _cargarHorariosOcupados();
-                  },
-                  validador: (fecha) {
-                    if (fecha == null) {
-                      return 'La fecha es requerida';
-                    }
-                    return null;
-                  },
+          // Fecha y Hora - Responsive
+          if (esMovil) ...[
+            CampoFecha(
+              etiqueta: 'Fecha',
+              requerido: true,
+              valorInicial: _fechaSeleccionada,
+              fechaMinima: DateTime.now(),
+              fechaMaxima: DateTime.now().add(const Duration(days: 365)),
+              onChanged: (fecha) {
+                setState(() {
+                  _fechaSeleccionada = fecha;
+                });
+                _cargarHorariosOcupados();
+              },
+              validador: (fecha) {
+                if (fecha == null) {
+                  return 'La fecha es requerida';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            CampoHora(
+              etiqueta: 'Hora',
+              requerido: true,
+              valorInicial: _horaSeleccionada,
+              onChanged: (hora) {
+                setState(() {
+                  _horaSeleccionada = hora;
+                });
+                _validarHorario();
+              },
+              validador: (hora) {
+                if (hora == null) {
+                  return 'La hora es requerida';
+                }
+                return null;
+              },
+            ),
+          ] else
+            Row(
+              children: [
+                Expanded(
+                  child: CampoFecha(
+                    etiqueta: 'Fecha',
+                    requerido: true,
+                    valorInicial: _fechaSeleccionada,
+                    fechaMinima: DateTime.now(),
+                    fechaMaxima: DateTime.now().add(const Duration(days: 365)),
+                    onChanged: (fecha) {
+                      setState(() {
+                        _fechaSeleccionada = fecha;
+                      });
+                      _cargarHorariosOcupados();
+                    },
+                    validador: (fecha) {
+                      if (fecha == null) {
+                        return 'La fecha es requerida';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: CampoHora(
-                  etiqueta: 'Hora',
-                  requerido: true,
-                  valorInicial: _horaSeleccionada,
-                  onChanged: (hora) {
-                    setState(() {
-                      _horaSeleccionada = hora;
-                    });
-                    _validarHorario();
-                  },
-                  validador: (hora) {
-                    if (hora == null) {
-                      return 'La hora es requerida';
-                    }
-                    return null;
-                  },
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CampoHora(
+                    etiqueta: 'Hora',
+                    requerido: true,
+                    valorInicial: _horaSeleccionada,
+                    onChanged: (hora) {
+                      setState(() {
+                        _horaSeleccionada = hora;
+                      });
+                      _validarHorario();
+                    },
+                    validador: (hora) {
+                      if (hora == null) {
+                        return 'La hora es requerida';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
           const SizedBox(height: 16),
 
@@ -399,7 +601,7 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
               decoration: BoxDecoration(
                 color: const Color(0xFFDEEBFF),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: ColoresApp.primario.withOpacity(0.3)),
+                border: Border.all(color: ColoresApp.primario.withValues(alpha: 0.3)),
               ),
               child: const Row(
                 children: [
@@ -420,103 +622,187 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
               ),
             ),
 
-          Row(
-            children: [
-              Expanded(
-                child: CampoSelector<TipoCita>(
-                  etiqueta: 'Tipo de Cita',
-                  requerido: true,
-                  valorInicial: _tipoSeleccionado,
-                  opciones: TipoCita.values.map((tipo) {
-                    return OpcionSelector(
-                      valor: tipo,
-                      etiqueta: tipo.texto,
-                      icono: tipo.icono,
-                    );
-                  }).toList(),
-                  onChanged: (valor) {
-                    if (valor != null) {
-                      setState(() {
-                        _tipoSeleccionado = valor;
-                      });
-                    }
-                  },
+          // Tipo y Duración - Responsive
+          if (esMovil) ...[
+            CampoSelector<TipoCita>(
+              etiqueta: 'Tipo de Cita',
+              requerido: true,
+              valorInicial: _tipoSeleccionado,
+              opciones: TipoCita.values.map((tipo) {
+                return OpcionSelector(
+                  valor: tipo,
+                  etiqueta: tipo.texto,
+                  icono: tipo.icono,
+                );
+              }).toList(),
+              onChanged: (valor) {
+                if (valor != null) {
+                  setState(() {
+                    _tipoSeleccionado = valor;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            CampoSelector<DuracionCita>(
+              etiqueta: 'Duración',
+              requerido: true,
+              valorInicial: _duracionSeleccionada,
+              opciones: DuracionCita.values.map((duracion) {
+                return OpcionSelector(
+                  valor: duracion,
+                  etiqueta: duracion.texto,
+                );
+              }).toList(),
+              onChanged: (valor) {
+                if (valor != null) {
+                  setState(() {
+                    _duracionSeleccionada = valor;
+                  });
+                  _validarHorario();
+                }
+              },
+            ),
+          ] else
+            Row(
+              children: [
+                Expanded(
+                  child: CampoSelector<TipoCita>(
+                    etiqueta: 'Tipo de Cita',
+                    requerido: true,
+                    valorInicial: _tipoSeleccionado,
+                    opciones: TipoCita.values.map((tipo) {
+                      return OpcionSelector(
+                        valor: tipo,
+                        etiqueta: tipo.texto,
+                        icono: tipo.icono,
+                      );
+                    }).toList(),
+                    onChanged: (valor) {
+                      if (valor != null) {
+                        setState(() {
+                          _tipoSeleccionado = valor;
+                        });
+                      }
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: CampoSelector<DuracionCita>(
-                  etiqueta: 'Duración',
-                  requerido: true,
-                  valorInicial: _duracionSeleccionada,
-                  opciones: DuracionCita.values.map((duracion) {
-                    return OpcionSelector(
-                      valor: duracion,
-                      etiqueta: duracion.texto,
-                    );
-                  }).toList(),
-                  onChanged: (valor) {
-                    if (valor != null) {
-                      setState(() {
-                        _duracionSeleccionada = valor;
-                      });
-                      _validarHorario();
-                    }
-                  },
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CampoSelector<DuracionCita>(
+                    etiqueta: 'Duración',
+                    requerido: true,
+                    valorInicial: _duracionSeleccionada,
+                    opciones: DuracionCita.values.map((duracion) {
+                      return OpcionSelector(
+                        valor: duracion,
+                        etiqueta: duracion.texto,
+                      );
+                    }).toList(),
+                    onChanged: (valor) {
+                      if (valor != null) {
+                        setState(() {
+                          _duracionSeleccionada = valor;
+                        });
+                        _validarHorario();
+                      }
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
           const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Expanded(
-                child: CampoSelector<EstadoCita>(
-                  etiqueta: 'Estado',
-                  requerido: true,
-                  valorInicial: _estadoSeleccionado,
-                  opciones: EstadoCita.values.map((estado) {
-                    return OpcionSelector(
-                      valor: estado,
-                      etiqueta: estado.texto,
-                      icono: estado.icono,
-                      color: estado.color,
-                    );
-                  }).toList(),
-                  onChanged: (valor) {
-                    if (valor != null) {
-                      setState(() {
-                        _estadoSeleccionado = valor;
-                      });
-                    }
-                  },
-                ),
+          // Estado y Primera vez - Responsive
+          if (esMovil) ...[
+            CampoSelector<EstadoCita>(
+              etiqueta: 'Estado',
+              requerido: true,
+              valorInicial: _estadoSeleccionado,
+              opciones: EstadoCita.values.map((estado) {
+                return OpcionSelector(
+                  valor: estado,
+                  etiqueta: estado.texto,
+                  icono: estado.icono,
+                  color: estado.color,
+                );
+              }).toList(),
+              onChanged: (valor) {
+                if (valor != null) {
+                  setState(() {
+                    _estadoSeleccionado = valor;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: ColoresApp.borde),
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: ColoresApp.borde),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: CheckboxListTile(
-                    title: const Text('¿Primera vez?'),
-                    value: _esPrimeraVez,
-                    onChanged: (value) {
-                      setState(() {
-                        _esPrimeraVez = value ?? true;
-                      });
+              child: CheckboxListTile(
+                title: const Text('¿Primera vez?'),
+                value: _esPrimeraVez,
+                onChanged: (value) {
+                  setState(() {
+                    _esPrimeraVez = value ?? true;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ] else
+            Row(
+              children: [
+                Expanded(
+                  child: CampoSelector<EstadoCita>(
+                    etiqueta: 'Estado',
+                    requerido: true,
+                    valorInicial: _estadoSeleccionado,
+                    opciones: EstadoCita.values.map((estado) {
+                      return OpcionSelector(
+                        valor: estado,
+                        etiqueta: estado.texto,
+                        icono: estado.icono,
+                        color: estado.color,
+                      );
+                    }).toList(),
+                    onChanged: (valor) {
+                      if (valor != null) {
+                        setState(() {
+                          _estadoSeleccionado = valor;
+                        });
+                      }
                     },
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: ColoresApp.borde),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: CheckboxListTile(
+                      title: const Text('¿Primera vez?'),
+                      value: _esPrimeraVez,
+                      onChanged: (value) {
+                        setState(() {
+                          _esPrimeraVez = value ?? true;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+              ],
+            ),
 
           const SizedBox(height: 16),
 
@@ -566,8 +852,9 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
   }
 
   Widget _buildAutocompleteNombre() {
-    return Autocomplete<Map<String, String>>(
-      initialValue: TextEditingValue(text: _estudianteNombreController.text),
+    return RawAutocomplete<Map<String, String>>(
+      textEditingController: _estudianteNombreController,
+      focusNode: FocusNode(),
       optionsBuilder: (TextEditingValue textEditingValue) {
         if (textEditingValue.text.isEmpty) {
           return const Iterable<Map<String, String>>.empty();
@@ -578,35 +865,16 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
           return nombreCompleto.contains(busqueda);
         });
       },
-      displayStringForOption: (Map<String, String> option) => option['nombreCompleto']!,
+      displayStringForOption: (Map<String, String> option) => option['nombre']!,
       onSelected: (Map<String, String> estudiante) {
-        final facultad = estudiante['facultad'] ?? '';
+        // Actualizar todos los datos del estudiante
         setState(() {
-          _estudianteNombreController.text = estudiante['nombre']!;
-          _estudianteApellidosController.text = estudiante['apellidos']!;
-          _estudianteEmailController.text = estudiante['email']!;
-          _estudianteCodigoController.text = estudiante['codigo']!;
-          _estudianteTelefonoController.text = estudiante['telefono']!;
-          _programaController.text = estudiante['programa']!;
-
-          // Asignar facultad si existe y es válida
-          if (facultad.isNotEmpty) {
-            _facultadSeleccionada = facultad;
-          }
+          _actualizarDatosEstudiante(estudiante);
         });
       },
-      fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-        // Sincronizar el controlador del campo con el controlador del estado
-        if (_estudianteNombreController.text != controller.text) {
-          controller.text = _estudianteNombreController.text;
-        }
-
-        controller.addListener(() {
-          _estudianteNombreController.text = controller.text;
-        });
-
+      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
         return TextFormField(
-          controller: controller,
+          controller: textEditingController,
           focusNode: focusNode,
           decoration: InputDecoration(
             labelText: 'Nombre *',
@@ -639,15 +907,43 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
             }
             return null;
           },
-          onEditingComplete: onEditingComplete,
+        );
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final option = options.elementAt(index);
+                  return InkWell(
+                    onTap: () {
+                      onSelected(option);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(option['nombreCompleto']!),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
   Widget _buildAutocompleteApellidos() {
-    return Autocomplete<Map<String, String>>(
-      initialValue: TextEditingValue(text: _estudianteApellidosController.text),
+    return RawAutocomplete<Map<String, String>>(
+      textEditingController: _estudianteApellidosController,
+      focusNode: FocusNode(),
       optionsBuilder: (TextEditingValue textEditingValue) {
         if (textEditingValue.text.isEmpty) {
           return const Iterable<Map<String, String>>.empty();
@@ -658,35 +954,16 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
           return nombreCompleto.contains(busqueda);
         });
       },
-      displayStringForOption: (Map<String, String> option) => option['nombreCompleto']!,
+      displayStringForOption: (Map<String, String> option) => option['apellidos']!,
       onSelected: (Map<String, String> estudiante) {
-        final facultad = estudiante['facultad'] ?? '';
+        // Actualizar todos los datos del estudiante
         setState(() {
-          _estudianteNombreController.text = estudiante['nombre']!;
-          _estudianteApellidosController.text = estudiante['apellidos']!;
-          _estudianteEmailController.text = estudiante['email']!;
-          _estudianteCodigoController.text = estudiante['codigo']!;
-          _estudianteTelefonoController.text = estudiante['telefono']!;
-          _programaController.text = estudiante['programa']!;
-
-          // Asignar facultad si existe y es válida
-          if (facultad.isNotEmpty) {
-            _facultadSeleccionada = facultad;
-          }
+          _actualizarDatosEstudiante(estudiante);
         });
       },
-      fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-        // Sincronizar el controlador del campo con el controlador del estado
-        if (_estudianteApellidosController.text != controller.text) {
-          controller.text = _estudianteApellidosController.text;
-        }
-
-        controller.addListener(() {
-          _estudianteApellidosController.text = controller.text;
-        });
-
+      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
         return TextFormField(
-          controller: controller,
+          controller: textEditingController,
           focusNode: focusNode,
           decoration: InputDecoration(
             labelText: 'Apellidos *',
@@ -719,7 +996,34 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
             }
             return null;
           },
-          onEditingComplete: onEditingComplete,
+        );
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final option = options.elementAt(index);
+                  return InkWell(
+                    onTap: () {
+                      onSelected(option);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(option['nombreCompleto']!),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
         );
       },
     );

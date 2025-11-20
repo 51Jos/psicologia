@@ -4,29 +4,49 @@ class FiltrosCita {
   final String busqueda;
   final String? facultad;
   final EstadoCita? estado;
+  final DateTime? fechaInicio;
+  final DateTime? fechaFin;
 
   const FiltrosCita({
     this.busqueda = '',
     this.facultad,
     this.estado,
+    this.fechaInicio,
+    this.fechaFin,
   });
 
   FiltrosCita copyWith({
     String? busqueda,
     String? facultad,
     EstadoCita? estado,
+    DateTime? fechaInicio,
+    DateTime? fechaFin,
+    bool limpiarFecha = false,
   }) {
     return FiltrosCita(
       busqueda: busqueda ?? this.busqueda,
       facultad: facultad ?? this.facultad,
       estado: estado ?? this.estado,
+      fechaInicio: limpiarFecha ? null : (fechaInicio ?? this.fechaInicio),
+      fechaFin: limpiarFecha ? null : (fechaFin ?? this.fechaFin),
     );
   }
 
-  bool get hayFiltros => busqueda.isNotEmpty || facultad != null || estado != null;
+  bool get hayFiltros =>
+    busqueda.isNotEmpty ||
+    facultad != null ||
+    estado != null ||
+    fechaInicio != null ||
+    fechaFin != null;
 
   void limpiar() {
-    FiltrosCita(busqueda: '', facultad: null, estado: null);
+    FiltrosCita(
+      busqueda: '',
+      facultad: null,
+      estado: null,
+      fechaInicio: null,
+      fechaFin: null,
+    );
   }
 }
 

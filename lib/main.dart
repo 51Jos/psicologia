@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:psicologia/firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'nucleo/configuracion_firebase.dart';
 import 'compartidos/tema/tema_app.dart';
 import 'rutas/rutas_app.dart';
 import 'features/autenticacion/controladores/auth_controlador.dart';

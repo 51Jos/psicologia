@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../../../nucleo/configuracion_firebase.dart';
 import '../modelos/usuario.dart';
 import '../modelos/credenciales_modelo.dart';
@@ -50,12 +51,19 @@ class AuthServicio {
 
       // Obtener datos del usuario desde Firestore
       final usuario = await obtenerDatosUsuario(userCredential.user!.uid);
-      
+
       if (usuario == null) {
         throw Exception('Usuario no encontrado en la base de datos');
       }
 
       // Verificar tipo de usuario
+      // Los estudiantes pueden iniciar sesión siempre
+      if (usuario.esEstudiante) {
+        await actualizarUltimoAcceso(usuario.id);
+        return usuario;
+      }
+
+      // Para administradores y psicólogos, verificar permisos
       if (credenciales.tipoAcceso == TipoAcceso.administrador && !usuario.esAdministrador) {
         await _auth.signOut();
         throw Exception('No tienes permisos de administrador');
@@ -74,6 +82,137 @@ class AuthServicio {
       throw _manejarErrorFirebase(e);
     } catch (e) {
       throw Exception(e.toString());
+    }
+  }
+
+  // Detectar tipo de usuario por email
+  TipoUsuario detectarTipoPorEmail(String email) {
+    if (email.endsWith('@ucss.edu.pe')) {
+      // Psicólogo: primera letra nombre + apellido@ucss.edu.pe
+      return TipoUsuario.psicologo;
+    } else if (email.endsWith('@ucss.pe')) {
+      // Estudiante: codigo@ucss.pe
+      return TipoUsuario.estudiante;
+    }
+    return TipoUsuario.psicologo; // Default
+  }
+
+  // Registrar estudiante
+  Future<UsuarioModelo> registrarEstudiante({
+    required String email,
+    required String password,
+    required String nombres,
+    required String apellidos,
+    String? telefono,
+  }) async {
+    try {
+      // Validar que sea email de estudiante
+      if (!email.endsWith('@ucss.pe')) {
+        throw Exception('El correo debe ser un código de estudiante válido (@ucss.pe)');
+      }
+
+      // Crear usuario en Firebase Auth
+      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (userCredential.user == null) {
+        throw Exception('Error al crear usuario');
+      }
+
+      // Crear documento en Firestore
+      final usuario = UsuarioModelo(
+        id: userCredential.user!.uid,
+        email: email,
+        nombres: nombres,
+        apellidos: apellidos,
+        tipo: TipoUsuario.estudiante,
+        activo: true,
+        fechaCreacion: DateTime.now(),
+        telefono: telefono,
+      );
+
+      await ConfiguracionFirebase.usuarios.doc(usuario.id).set(usuario.toFirestore());
+
+      return usuario;
+    } on FirebaseAuthException catch (e) {
+      throw _manejarErrorFirebase(e);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  // Registrar psicólogo (para uso administrativo o inicial)
+  Future<UsuarioModelo> registrarPsicologo({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      // Validar que sea email de psicólogo
+      if (!email.endsWith('@ucss.edu.pe')) {
+        throw Exception('El correo debe ser un email institucional válido (@ucss.edu.pe)');
+      }
+
+      // Crear usuario en Firebase Auth
+      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (userCredential.user == null) {
+        throw Exception('Error al crear usuario');
+      }
+
+      // Crear documento en Firestore con datos mínimos
+      final usuario = UsuarioModelo(
+        id: userCredential.user!.uid,
+        email: email,
+        nombres: '', // Se llenará en el perfil
+        apellidos: '', // Se llenará en el perfil
+        tipo: TipoUsuario.psicologo,
+        activo: true,
+        fechaCreacion: DateTime.now(),
+      );
+
+      await ConfiguracionFirebase.usuarios.doc(usuario.id).set(usuario.toFirestore());
+
+      return usuario;
+    } on FirebaseAuthException catch (e) {
+      throw _manejarErrorFirebase(e);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  // Actualizar perfil de psicólogo
+  Future<bool> actualizarPerfilPsicologo({
+    required String userId,
+    required String nombres,
+    required String apellidos,
+    String? telefono,
+    String? especialidad,
+  }) async {
+    try {
+      final Map<String, dynamic> datos = {
+        'nombres': nombres,
+        'apellidos': apellidos,
+        'fechaActualizacion': FieldValue.serverTimestamp(),
+      };
+
+      if (telefono != null && telefono.isNotEmpty) {
+        datos['telefono'] = telefono;
+      }
+
+      if (especialidad != null && especialidad.isNotEmpty) {
+        datos['especialidad'] = especialidad;
+      }
+
+      await ConfiguracionFirebase.usuarios.doc(userId).update(datos);
+      return true;
+    } catch (e) {
+      debugPrint('Error al actualizar perfil: $e');
+      return false;
     }
   }
 

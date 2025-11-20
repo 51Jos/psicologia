@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum TipoUsuario { administrador, psicologo }
+enum TipoUsuario { administrador, psicologo, estudiante }
 
 class UsuarioModelo {
   final String id;
@@ -13,6 +13,7 @@ class UsuarioModelo {
   final DateTime? ultimoAcceso;
   final String? foto;
   final String? telefono;
+  final String? especialidad;
   final Map<String, dynamic>? metadata;
 
   UsuarioModelo({
@@ -26,6 +27,7 @@ class UsuarioModelo {
     this.ultimoAcceso,
     this.foto,
     this.telefono,
+    this.especialidad,
     this.metadata,
   });
 
@@ -44,7 +46,7 @@ class UsuarioModelo {
   // Desde Firestore
   factory UsuarioModelo.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return UsuarioModelo(
       id: doc.id,
       email: data['email'] ?? '',
@@ -56,6 +58,7 @@ class UsuarioModelo {
       ultimoAcceso: (data['ultimoAcceso'] as Timestamp?)?.toDate(),
       foto: data['foto'],
       telefono: data['telefono'],
+      especialidad: data['especialidad'],
       metadata: data['metadata'],
     );
   }
@@ -70,11 +73,12 @@ class UsuarioModelo {
       tipo: _stringToTipoUsuario(json['tipo'] ?? 'psicologo'),
       activo: json['activo'] ?? true,
       fechaCreacion: DateTime.parse(json['fechaCreacion'] ?? DateTime.now().toIso8601String()),
-      ultimoAcceso: json['ultimoAcceso'] != null 
-          ? DateTime.parse(json['ultimoAcceso']) 
+      ultimoAcceso: json['ultimoAcceso'] != null
+          ? DateTime.parse(json['ultimoAcceso'])
           : null,
       foto: json['foto'],
       telefono: json['telefono'],
+      especialidad: json['especialidad'],
       metadata: json['metadata'],
     );
   }
@@ -91,6 +95,7 @@ class UsuarioModelo {
       'ultimoAcceso': ultimoAcceso != null ? Timestamp.fromDate(ultimoAcceso!) : null,
       'foto': foto,
       'telefono': telefono,
+      'especialidad': especialidad,
       'metadata': metadata,
     };
   }
@@ -108,6 +113,7 @@ class UsuarioModelo {
       'ultimoAcceso': ultimoAcceso?.toIso8601String(),
       'foto': foto,
       'telefono': telefono,
+      'especialidad': especialidad,
       'metadata': metadata,
     };
   }
@@ -123,6 +129,7 @@ class UsuarioModelo {
 
   bool get esAdministrador => tipo == TipoUsuario.administrador;
   bool get esPsicologo => tipo == TipoUsuario.psicologo;
+  bool get esEstudiante => tipo == TipoUsuario.estudiante;
 
   // CopyWith
   UsuarioModelo copyWith({
@@ -158,6 +165,8 @@ class UsuarioModelo {
     switch (tipo.toLowerCase()) {
       case 'administrador':
         return TipoUsuario.administrador;
+      case 'estudiante':
+        return TipoUsuario.estudiante;
       case 'psicologo':
       default:
         return TipoUsuario.psicologo;
@@ -170,6 +179,8 @@ class UsuarioModelo {
         return 'administrador';
       case TipoUsuario.psicologo:
         return 'psicologo';
+      case TipoUsuario.estudiante:
+        return 'estudiante';
     }
   }
 

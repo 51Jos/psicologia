@@ -88,12 +88,12 @@ class TemaApp {
       margin: const EdgeInsets.all(espaciadoMD),
     ),
     
-    // Elevated Button
+    // Elevated Button - Elegante
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(ColoresApp.primario),
         foregroundColor: MaterialStateProperty.all(ColoresApp.textoBlanco),
-        elevation: MaterialStateProperty.all(2),
+        elevation: MaterialStateProperty.all(0), // Flat design elegante
         padding: MaterialStateProperty.all(
           const EdgeInsets.symmetric(
             horizontal: espaciadoLG,
@@ -102,13 +102,14 @@ class TemaApp {
         ),
         shape: MaterialStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radioBase),
+            borderRadius: BorderRadius.circular(radioGrande),
           ),
         ),
         textStyle: MaterialStateProperty.all(
           const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
       ),
@@ -152,46 +153,47 @@ class TemaApp {
       ),
     ),
     
-    // Input Decoration
+    // Input Decoration - Mejorado con nuevo esquema
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: ColoresApp.fondoBlanco,
+      fillColor: ColoresApp.fondoInput,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: espaciadoMD,
         vertical: espaciadoMD,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(radioBase),
-        borderSide: const BorderSide(color: ColoresApp.borde),
+        borderRadius: BorderRadius.circular(radioGrande),
+        borderSide: const BorderSide(color: ColoresApp.borde, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(radioBase),
-        borderSide: const BorderSide(color: ColoresApp.borde),
+        borderRadius: BorderRadius.circular(radioGrande),
+        borderSide: const BorderSide(color: ColoresApp.borde, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(radioBase),
+        borderRadius: BorderRadius.circular(radioGrande),
         borderSide: const BorderSide(
-          color: ColoresApp.primario,
-          width: 2,
+          color: ColoresApp.secundario, // Dorado elegante al hacer focus
+          width: 2.5,
         ),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(radioBase),
+        borderRadius: BorderRadius.circular(radioGrande),
         borderSide: const BorderSide(
           color: ColoresApp.error,
-          width: 1,
+          width: 1.5,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(radioBase),
+        borderRadius: BorderRadius.circular(radioGrande),
         borderSide: const BorderSide(
           color: ColoresApp.error,
-          width: 2,
+          width: 2.5,
         ),
       ),
       labelStyle: const TextStyle(
         color: ColoresApp.textoGris,
         fontSize: 14,
+        fontWeight: FontWeight.w500,
       ),
       hintStyle: const TextStyle(
         color: ColoresApp.textoGrisClaro,
@@ -200,6 +202,7 @@ class TemaApp {
       errorStyle: const TextStyle(
         color: ColoresApp.error,
         fontSize: 12,
+        fontWeight: FontWeight.w500,
       ),
       prefixIconColor: ColoresApp.textoGris,
       suffixIconColor: ColoresApp.textoGris,

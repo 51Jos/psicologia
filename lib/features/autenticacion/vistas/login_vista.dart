@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../controladores/auth_controlador.dart';
 import '../componentes/login/login_fondo.dart';
 import '../componentes/login/login_card.dart';
 
@@ -9,12 +7,9 @@ class LoginVista extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AuthControlador(),
-      child: Scaffold(
-        body: LoginFondo(
-          child: const LoginCard(),
-        ),
+    return Scaffold(
+      body: LoginFondo(
+        child: const LoginCard(),
       ),
     );
   }

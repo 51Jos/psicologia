@@ -1,30 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:psicologia/features/autenticacion/vistas/login_vista.dart';
+import 'package:psicologia/features/autenticacion/vistas/registro_vista.dart';
 import 'package:psicologia/features/citas/vistas/lista_cita.dart';
 import 'package:psicologia/features/citas/vistas/formulario_cita_vista.dart';
+import 'package:psicologia/features/reservas_estudiante/vistas/reservas_estudiante_vista.dart';
+import 'package:psicologia/features/perfil/vistas/perfil_vista.dart';
+
 class RutasApp {
   // Prevenir instanciación
   RutasApp._();
 
   // Nombres de rutas
   static const String login = '/';
+  static const String registro = '/registro';
   static const String dashboard = '/dashboard';
-  
+
   // Rutas de Atenciones
   static const String listaAtenciones = '/atenciones';
   static const String registrarAtencion = '/atenciones/registrar';
   static const String editarAtencion = '/atenciones/editar';
-  
+
   // Rutas de Citas
   static const String listaCitas = '/citas';
   static const String agendarCita = '/citas/agendar';
   static const String editarCita = '/citas/editar';
-  
+
   // Rutas de Estudiantes
   static const String listaEstudiantes = '/estudiantes';
   static const String registrarEstudiante = '/estudiantes/registrar';
   static const String editarEstudiante = '/estudiantes/editar';
   static const String perfilEstudiante = '/estudiantes/perfil';
+  static const String reservasEstudiante = '/estudiante/reservas';
   
   // Rutas de Reportes
   static const String reportes = '/reportes';
@@ -40,8 +46,11 @@ class RutasApp {
   // Mapa de rutas estáticas
   static Map<String, WidgetBuilder> get rutas => {
     login: (_) => const LoginVista(),
+    registro: (_) => const RegistroVista(),
+    perfil: (_) => const PerfilVista(),
     agendarCita: (_) => const FormularioCitaVista(),
     listaAtenciones: (_) => const ListaCita(),
+    reservasEstudiante: (_) => const ReservasEstudianteVista(),
     //registrarAtencion: (_) => const RegistrarAtencionVista(),
     //listaCitas: (_) => const ListaCitasVista(),
     //agendarCita: (_) => const AgendarCitaVista(),

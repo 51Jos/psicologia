@@ -113,6 +113,52 @@ class _LoginFormularioState extends State<LoginFormulario> {
                 onPressed: authControlador.estaCargando ? null : _iniciarSesion,
                 cargando: authControlador.estaCargando,
               ),
+
+              const SizedBox(height: 24),
+
+              // Divider
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'o',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Botón de Registro
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/registro');
+                  },
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.fontSize(context, base: 14),
+                        color: Colors.grey[700],
+                      ),
+                      children: [
+                        const TextSpan(text: '¿Eres estudiante? '),
+                        TextSpan(
+                          text: 'Regístrate aquí',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         );

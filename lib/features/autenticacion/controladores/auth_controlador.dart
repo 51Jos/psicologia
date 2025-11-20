@@ -82,6 +82,15 @@ class AuthControlador extends ChangeNotifier {
       if (context.mounted) {
         if (usuarioAutenticado.esAdministrador) {
           RutasApp.navegarYLimpiar(context, RutasApp.dashboard);
+        } else if (usuarioAutenticado.esEstudiante) {
+          RutasApp.navegarYLimpiar(context, RutasApp.reservasEstudiante);
+        } else if (usuarioAutenticado.esPsicologo) {
+          // Verificar si el psicólogo tiene datos completos
+          if (usuarioAutenticado.nombres.isEmpty || usuarioAutenticado.apellidos.isEmpty) {
+            RutasApp.navegarYLimpiar(context, RutasApp.perfil);
+          } else {
+            RutasApp.navegarYLimpiar(context, RutasApp.listaAtenciones);
+          }
         } else {
           RutasApp.navegarYLimpiar(context, RutasApp.listaAtenciones);
         }
@@ -130,7 +139,7 @@ class AuthControlador extends ChangeNotifier {
   }) async {
     try {
       await _authServicio.recuperarPassword(email);
-      
+
       if (context.mounted) {
         _mostrarExito(
           context,
@@ -138,6 +147,48 @@ class AuthControlador extends ChangeNotifier {
         );
       }
     } catch (e) {
+      if (context.mounted) {
+        _mostrarError(context, e.toString());
+      }
+    }
+  }
+
+  // Registrar estudiante
+  Future<void> registrarEstudiante({
+    required BuildContext context,
+    required String codigo,
+    required String password,
+    required String nombres,
+    required String apellidos,
+    String? telefono,
+  }) async {
+    try {
+      _estado = const AuthCargando();
+      notifyListeners();
+
+      final email = '$codigo@ucss.pe';
+
+      final usuarioCreado = await _authServicio.registrarEstudiante(
+        email: email,
+        password: password,
+        nombres: nombres,
+        apellidos: apellidos,
+        telefono: telefono,
+      );
+
+      _usuarioActual = usuarioCreado;
+      _estado = AuthExito(usuarioCreado);
+      notifyListeners();
+
+      // Navegar a la pantalla de reservas
+      if (context.mounted) {
+        _mostrarExito(context, '¡Cuenta creada exitosamente!');
+        RutasApp.navegarYLimpiar(context, RutasApp.reservasEstudiante);
+      }
+    } catch (e) {
+      _estado = AuthError(e.toString());
+      notifyListeners();
+
       if (context.mounted) {
         _mostrarError(context, e.toString());
       }

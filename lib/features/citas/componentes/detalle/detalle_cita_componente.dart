@@ -17,6 +17,8 @@ class DetalleCitaComponente extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final esMovil = MediaQuery.of(context).size.width < 768;
+
     return Container(
       constraints: const BoxConstraints(maxWidth: 800),
       child: SingleChildScrollView(
@@ -24,8 +26,8 @@ class DetalleCitaComponente extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header con estado y acciones
-            _buildHeader(context),
-            const SizedBox(height: 24),
+            _buildHeader(esMovil),
+            SizedBox(height: esMovil ? 16 : 24),
 
             // Información del estudiante
             _buildSeccion(
@@ -154,83 +156,155 @@ class DetalleCitaComponente extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(bool esMovil) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(esMovil ? 16 : 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            cita.estado.color.withOpacity(0.1),
-            cita.estado.color.withOpacity(0.05),
+            cita.estado.color.withValues(alpha: 0.1),
+            cita.estado.color.withValues(alpha: 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cita.estado.color.withOpacity(0.3), width: 2),
+        border: Border.all(color: cita.estado.color.withValues(alpha: 0.3), width: 2),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: cita.estado.color,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              cita.estado.icono,
-              color: Colors.white,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: esMovil
+          ? Column(
               children: [
-                Text(
-                  'Estado de la Cita',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: ColoresApp.textoGris,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: cita.estado.color,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        cita.estado.icono,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Estado de la Cita',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColoresApp.textoGris,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            cita.estado.texto,
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: cita.estado.color,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  cita.estado.texto,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: cita.estado.color,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (cita.primeraVez)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFDCFCE7),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF86EFAC)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.star, color: Color(0xFF16A34A), size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Primera vez',
-                    style: TextStyle(
-                      color: Color(0xFF16A34A),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
+                if (cita.primeraVez) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF86EFAC)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.star, color: Color(0xFF16A34A), size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Primera vez',
+                          style: TextStyle(
+                            color: Color(0xFF16A34A),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ),
+              ],
+            )
+          : Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: cita.estado.color,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    cita.estado.icono,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Estado de la Cita',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: ColoresApp.textoGris,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        cita.estado.texto,
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: cita.estado.color,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (cita.primeraVez)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF86EFAC)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.star, color: Color(0xFF16A34A), size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Primera vez',
+                          style: TextStyle(
+                            color: Color(0xFF16A34A),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
-        ],
-      ),
     );
   }
 
@@ -339,6 +413,49 @@ class DetalleCitaComponente extends StatelessWidget {
   }
 
   Widget _buildAcciones(BuildContext context) {
+    final esMovil = MediaQuery.of(context).size.width < 768;
+
+    if (esMovil) {
+      // En móvil, los botones en columna
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (onEditar != null)
+            ElevatedButton.icon(
+              onPressed: onEditar,
+              icon: const Icon(Icons.edit, size: 20),
+              label: const Text('Editar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColoresApp.primario,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 2,
+              ),
+            ),
+          if (onEditar != null && onEliminar != null) const SizedBox(height: 12),
+          if (onEliminar != null)
+            ElevatedButton.icon(
+              onPressed: onEliminar,
+              icon: const Icon(Icons.delete, size: 20),
+              label: const Text('Eliminar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 2,
+              ),
+            ),
+        ],
+      );
+    }
+
+    // En desktop, los botones en fila
     return Row(
       children: [
         if (onEditar != null)

@@ -10,10 +10,14 @@ class CitaControlador extends ChangeNotifier {
   // Estado del controlador
   List<CitaModelo> _citas = [];
   EstadisticasCita _estadisticas = EstadisticasCita.vacia();
-  FiltrosCita _filtros = const FiltrosCita();
+  FiltrosCita _filtros = FiltrosCita(
+    fechaInicio: DateTime.now().copyWith(hour: 0, minute: 0, second: 0, millisecond: 0),
+    fechaFin: DateTime.now().copyWith(hour: 23, minute: 59, second: 59, millisecond: 999),
+  ); // Filtrar por defecto para mostrar solo citas del día actual
   TipoVista _tipoVista = TipoVista.tabla;
   bool _cargando = false;
   String? _error;
+  bool _inicializado = false;
 
   // Getters
   List<CitaModelo> get citas => _citas;
@@ -23,13 +27,20 @@ class CitaControlador extends ChangeNotifier {
   bool get cargando => _cargando;
   String? get error => _error;
   bool get hayError => _error != null;
+  bool get inicializado => _inicializado;
 
   // Stream de citas
   Stream<List<CitaModelo>>? _citasStream;
 
   void inicializar() {
-    _escucharCitas();
-    _cargarEstadisticas();
+    if (_inicializado) return; // Evitar inicializar múltiples veces
+    _inicializado = true;
+
+    // Usar Future.microtask para evitar llamar a notifyListeners durante build
+    Future.microtask(() {
+      _escucharCitas();
+      _cargarEstadisticas();
+    });
   }
 
   void _escucharCitas() {
@@ -74,6 +85,24 @@ class CitaControlador extends ChangeNotifier {
 
   void filtrarPorEstado(EstadoCita? estado) {
     _filtros = _filtros.copyWith(estado: estado);
+    _escucharCitas();
+  }
+
+  void filtrarPorFecha(DateTime? fechaInicio, DateTime? fechaFin) {
+    _filtros = _filtros.copyWith(
+      fechaInicio: fechaInicio,
+      fechaFin: fechaFin,
+      limpiarFecha: fechaInicio == null && fechaFin == null,
+    );
+    _escucharCitas();
+  }
+
+  void filtrarPorHoy() {
+    final hoy = DateTime.now();
+    _filtros = _filtros.copyWith(
+      fechaInicio: hoy.copyWith(hour: 0, minute: 0, second: 0, millisecond: 0),
+      fechaFin: hoy.copyWith(hour: 23, minute: 59, second: 59, millisecond: 999),
+    );
     _escucharCitas();
   }
 

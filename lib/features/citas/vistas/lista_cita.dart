@@ -31,26 +31,21 @@ class _ListaCitaState extends State<ListaCita> {
 
   @override
   Widget build(BuildContext context) {
+    final esMovil = MediaQuery.of(context).size.width < 768;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FAFC),
+      backgroundColor: ColoresApp.fondoSecundario,
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667EEA),
-              Color(0xFF764BA2),
-            ],
-          ),
+          gradient: ColoresApp.gradientePrimario,
         ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(context).size.width > 1600 ? 60 :
-                           MediaQuery.of(context).size.width > 1200 ? 40 : 20,
-                vertical: 20,
+                horizontal: esMovil ? 12 : (MediaQuery.of(context).size.width > 1600 ? 60 :
+                           MediaQuery.of(context).size.width > 1200 ? 40 : 20),
+                vertical: esMovil ? 12 : 20,
               ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -58,9 +53,11 @@ class _ListaCitaState extends State<ListaCita> {
                 ),
                 child: Column(
                   children: [
-                    // Header
-                    _buildHeader(),
-                    const SizedBox(height: 20),
+                    // Header - Solo en desktop
+                    if (!esMovil) ...[
+                      _buildHeader(),
+                      const SizedBox(height: 20),
+                    ],
                     // Contenido principal
                     Container(
                       decoration: BoxDecoration(
@@ -105,14 +102,7 @@ class _ListaCitaState extends State<ListaCita> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF4A5568),
-            Color(0xFF2D3748),
-          ],
-        ),
+        gradient: ColoresApp.gradientePrimario,
         borderRadius: BorderRadius.circular(12),
       ),
       child: const Column(
@@ -141,61 +131,113 @@ class _ListaCitaState extends State<ListaCita> {
   }
 
   Widget _buildControles() {
+    final esMovil = MediaQuery.of(context).size.width < 768;
+
     return Column(
       children: [
         // Búsqueda y filtros
         const FiltrosBusquedaComponente(),
         const SizedBox(height: 16),
         // Botones de acción
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Contador de resultados
-            Consumer<CitaControlador>(
-              builder: (context, controlador, child) {
-                return Text(
-                  '${controlador.citas.length} citas encontradas',
-                  style: const TextStyle(
-                    color: Color(0xFF718096),
-                    fontWeight: FontWeight.w500,
-                  ),
-                );
-              },
-            ),
-            // Botones de acción
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                ElevatedButton(
-                  onPressed: () => _navegarAAgregarCita(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF667EEA),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+        if (esMovil)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Contador de resultados
+              Consumer<CitaControlador>(
+                builder: (context, controlador, child) {
+                  return Text(
+                    '${controlador.citas.length} citas encontradas',
+                    style: const TextStyle(
+                      color: ColoresApp.textoGris,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
                     ),
-                    elevation: 0,
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              // Botones en columna para móvil
+              ElevatedButton.icon(
+                onPressed: () => _navegarAAgregarCita(),
+                icon: const Icon(Icons.add, size: 20),
+                label: const Text('Nuevo Registro', style: TextStyle(fontWeight: FontWeight.w600)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColoresApp.primario,
+                  foregroundColor: ColoresApp.textoBlanco,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text('➕ Nuevo Registro', style: TextStyle(fontWeight: FontWeight.w600)),
+                  elevation: 0,
                 ),
-                OutlinedButton(
-                  onPressed: () => _exportarDatos(),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF667EEA),
-                    side: const BorderSide(color: Color(0xFF667EEA), width: 2),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => _exportarDatos(),
+                icon: const Icon(Icons.download, size: 20),
+                label: const Text('Exportar Datos', style: TextStyle(fontWeight: FontWeight.w600)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ColoresApp.primario,
+                  side: const BorderSide(color: ColoresApp.primario, width: 2),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          )
+        else
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Contador de resultados
+              Consumer<CitaControlador>(
+                builder: (context, controlador, child) {
+                  return Text(
+                    '${controlador.citas.length} citas encontradas',
+                    style: const TextStyle(
+                      color: ColoresApp.textoGris,
+                      fontWeight: FontWeight.w500,
                     ),
+                  );
+                },
+              ),
+              // Botones de acción
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _navegarAAgregarCita(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ColoresApp.primario,
+                      foregroundColor: ColoresApp.textoBlanco,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text('➕ Nuevo Registro', style: TextStyle(fontWeight: FontWeight.w600)),
                   ),
-                  child: const Text('📊 Exportar Datos', style: TextStyle(fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-          ],
-        ),
+                  OutlinedButton(
+                    onPressed: () => _exportarDatos(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ColoresApp.primario,
+                      side: const BorderSide(color: ColoresApp.primario, width: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('📊 Exportar Datos', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -208,7 +250,7 @@ class _ListaCitaState extends State<ListaCita> {
             child: Padding(
               padding: EdgeInsets.all(40),
               child: CircularProgressIndicator(
-                color: Color(0xFF667EEA),
+                color: ColoresApp.primario,
               ),
             ),
           );
@@ -223,7 +265,7 @@ class _ListaCitaState extends State<ListaCita> {
                   const Icon(
                     Icons.error_outline,
                     size: 64,
-                    color: Color(0xFFEF4444),
+                    color: ColoresApp.error,
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -231,14 +273,14 @@ class _ListaCitaState extends State<ListaCita> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF4A5568),
+                      color: ColoresApp.textoNegro,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     controlador.error ?? 'Error desconocido',
                     style: const TextStyle(
-                      color: Color(0xFF718096),
+                      color: ColoresApp.textoGris,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -518,7 +560,7 @@ class _ListaCitaState extends State<ListaCita> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Cita eliminada exitosamente'),
-                    backgroundColor: Color(0xFF48BB78),
+                    backgroundColor: ColoresApp.exito,
                     duration: Duration(seconds: 2),
                   ),
                 );
@@ -535,7 +577,7 @@ class _ListaCitaState extends State<ListaCita> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
+              backgroundColor: ColoresApp.error,
             ),
             child: const Text('Eliminar'),
           ),
@@ -549,7 +591,7 @@ class _ListaCitaState extends State<ListaCita> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Exportando datos...'),
-        backgroundColor: Color(0xFF4299E1),
+        backgroundColor: ColoresApp.info,
       ),
     );
   }

@@ -3,7 +3,10 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(touch:*)",
-      "Bash(flutter:*)"
+      "Bash(flutter:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nMejoras en formulario de citas: autocompletado y selectores dinámicos\n\n- Fix: Autocompletado de estudiantes sin errores de setState\n  - Implementado RawAutocomplete con controladores propios\n  - Nombre y apellidos se separan correctamente\n  - Todos los campos se llenan automáticamente al seleccionar\n  \n- Optimización móvil de selectores de facultad\n  - Etiquetas cortas en móvil para evitar desbordamiento\n  - Etiquetas completas en desktop\n  - Añadida Facultad de Derecho\n  \n- Selector dinámico de programas académicos\n  - Programas se filtran según facultad seleccionada\n  - Basado en carreras de UCSS Nueva Cajamarca\n  - Se resetea automáticamente al cambiar facultad\n  - Campo deshabilitado hasta seleccionar facultad\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
