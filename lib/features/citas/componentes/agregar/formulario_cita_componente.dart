@@ -235,7 +235,12 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
       _esPrimeraVez = cita.primeraVez;
     } else {
       _psicologoIdController.text = 'default_psicologo';
-      _fechaSeleccionada = DateTime.now().add(const Duration(days: 1));
+      // Establecer fecha inicial evitando domingos
+      DateTime fechaInicial = DateTime.now().add(const Duration(days: 1));
+      while (fechaInicial.weekday == DateTime.sunday) {
+        fechaInicial = fechaInicial.add(const Duration(days: 1));
+      }
+      _fechaSeleccionada = fechaInicial;
       _horaSeleccionada = const TimeOfDay(hour: 9, minute: 0);
     }
   }

@@ -78,7 +78,7 @@ class TarjetasCitasComponente extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: columnas,
-        childAspectRatio: 1.3,
+        childAspectRatio: esTablet ? 1.4 : 1.5,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
