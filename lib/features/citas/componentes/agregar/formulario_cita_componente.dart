@@ -490,10 +490,6 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
               valorInicial: _fechaSeleccionada,
               fechaMinima: DateTime.now(),
               fechaMaxima: DateTime.now().add(const Duration(days: 365)),
-              selectableDayPredicate: (DateTime date) {
-                // Excluir domingos (weekday 7 es domingo)
-                return date.weekday != DateTime.sunday;
-              },
               onChanged: (fecha) {
                 setState(() {
                   _fechaSeleccionada = fecha;
@@ -535,10 +531,6 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
                     valorInicial: _fechaSeleccionada,
                     fechaMinima: DateTime.now(),
                     fechaMaxima: DateTime.now().add(const Duration(days: 365)),
-                    selectableDayPredicate: (DateTime date) {
-                      // Excluir domingos (weekday 7 es domingo)
-                      return date.weekday != DateTime.sunday;
-                    },
                     onChanged: (fecha) {
                       setState(() {
                         _fechaSeleccionada = fecha;
@@ -865,127 +857,112 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
   }
 
   Widget _buildAutocompleteNombre() {
-    return Autocomplete<Map<String, String>>(
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text.isEmpty) {
-          return const Iterable<Map<String, String>>.empty();
+    return CampoTexto(
+      controlador: _estudianteNombreController,
+      etiqueta: 'Nombre',
+      requerido: true,
+      placeholder: 'Ingresa el nombre del estudiante',
+      iconoPrefijo: Icons.person,
+      iconoSufijo: Icons.search,
+      onIconoSufijoTap: () => _mostrarBuscadorEstudiantes(),
+      validador: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'El nombre es requerido';
         }
-        return _estudiantesRegistrados.where((estudiante) {
-          final nombreCompleto = estudiante['nombreCompleto']!.toLowerCase();
-          final busqueda = textEditingValue.text.toLowerCase();
-          return nombreCompleto.contains(busqueda);
-        });
-      },
-      displayStringForOption: (Map<String, String> option) => option['nombre']!,
-      onSelected: (Map<String, String> estudiante) {
-        _actualizarDatosEstudiante(estudiante);
-      },
-      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-        // Inicializar con el valor del estudiante si existe
-        if (_estudianteNombreController.text.isNotEmpty && controller.text.isEmpty) {
-          controller.text = _estudianteNombreController.text;
-        }
-
-        return TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          onChanged: (value) {
-            _estudianteNombreController.text = value;
-          },
-          decoration: InputDecoration(
-            labelText: 'Nombre *',
-            hintText: 'Escribe para buscar estudiante...',
-            labelStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: ColoresApp.textoNegro,
-            ),
-            filled: true,
-            fillColor: focusNode.hasFocus ? Colors.white : ColoresApp.fondoBlanco,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            suffixIcon: const Icon(Icons.person_search, color: ColoresApp.primario),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: ColoresApp.borde),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: ColoresApp.borde, width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: ColoresApp.primario, width: 2),
-            ),
-          ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'El nombre es requerido';
-            }
-            return null;
-          },
-        );
+        return null;
       },
     );
   }
 
   Widget _buildAutocompleteApellidos() {
-    return Autocomplete<Map<String, String>>(
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text.isEmpty) {
-          return const Iterable<Map<String, String>>.empty();
+    return CampoTexto(
+      controlador: _estudianteApellidosController,
+      etiqueta: 'Apellidos',
+      requerido: true,
+      placeholder: 'Ingresa los apellidos del estudiante',
+      iconoPrefijo: Icons.person,
+      iconoSufijo: Icons.search,
+      onIconoSufijoTap: () => _mostrarBuscadorEstudiantes(),
+      validador: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Los apellidos son requeridos';
         }
-        return _estudiantesRegistrados.where((estudiante) {
-          final nombreCompleto = estudiante['nombreCompleto']!.toLowerCase();
-          final busqueda = textEditingValue.text.toLowerCase();
-          return nombreCompleto.contains(busqueda);
-        });
+        return null;
       },
-      displayStringForOption: (Map<String, String> option) => option['apellidos']!,
-      onSelected: (Map<String, String> estudiante) {
-        _actualizarDatosEstudiante(estudiante);
-      },
-      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-        // Inicializar con el valor del estudiante si existe
-        if (_estudianteApellidosController.text.isNotEmpty && controller.text.isEmpty) {
-          controller.text = _estudianteApellidosController.text;
-        }
+    );
+  }
 
-        return TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          onChanged: (value) {
-            _estudianteApellidosController.text = value;
-          },
-          decoration: InputDecoration(
-            labelText: 'Apellidos *',
-            hintText: 'Escribe para buscar estudiante...',
-            labelStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: ColoresApp.textoNegro,
-            ),
-            filled: true,
-            fillColor: focusNode.hasFocus ? Colors.white : ColoresApp.fondoBlanco,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            suffixIcon: const Icon(Icons.person_search, color: ColoresApp.primario),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: ColoresApp.borde),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: ColoresApp.borde, width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: ColoresApp.primario, width: 2),
-            ),
-          ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Los apellidos son requeridos';
-            }
-            return null;
+  void _mostrarBuscadorEstudiantes() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String busqueda = '';
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final estudiantesFiltrados = busqueda.isEmpty
+                ? _estudiantesRegistrados
+                : _estudiantesRegistrados.where((estudiante) {
+                    final nombreCompleto = estudiante['nombreCompleto']!.toLowerCase();
+                    return nombreCompleto.contains(busqueda.toLowerCase());
+                  }).toList();
+
+            return AlertDialog(
+              title: const Text('Buscar Estudiante'),
+              content: SizedBox(
+                width: 400,
+                height: 500,
+                child: Column(
+                  children: [
+                    TextField(
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Buscar',
+                        hintText: 'Escribe nombre o apellidos...',
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          busqueda = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: estudiantesFiltrados.isEmpty
+                          ? const Center(
+                              child: Text('No se encontraron estudiantes'),
+                            )
+                          : ListView.builder(
+                              itemCount: estudiantesFiltrados.length,
+                              itemBuilder: (context, index) {
+                                final estudiante = estudiantesFiltrados[index];
+                                return ListTile(
+                                  leading: const CircleAvatar(
+                                    child: Icon(Icons.person),
+                                  ),
+                                  title: Text(estudiante['nombreCompleto']!),
+                                  subtitle: Text(estudiante['codigo'] ?? ''),
+                                  onTap: () {
+                                    this.setState(() {
+                                      _actualizarDatosEstudiante(estudiante);
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+              ],
+            );
           },
         );
       },
