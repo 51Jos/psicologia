@@ -51,16 +51,41 @@ class TarjetasCitasComponente extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
+    final anchoDisponible = MediaQuery.of(context).size.width;
+    final esMovil = anchoDisponible < 768;
+    final esTablet = anchoDisponible >= 768 && anchoDisponible < 1200;
+
+    // Usar grid en pantallas grandes para mejor uso del espacio
+    if (esMovil) {
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: citas.length,
+        itemBuilder: (context, index) {
+          final cita = citas[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildCitaCard(cita),
+          );
+        },
+      );
+    }
+
+    // Grid para tablet y desktop
+    final columnas = esTablet ? 2 : 3;
+    return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columnas,
+        childAspectRatio: 1.3,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
       itemCount: citas.length,
       itemBuilder: (context, index) {
         final cita = citas[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _buildCitaCard(cita),
-        );
+        return _buildCitaCard(cita);
       },
     );
   }
@@ -81,9 +106,10 @@ class TarjetasCitasComponente extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Header de la tarjeta
             Row(
@@ -96,10 +122,12 @@ class TarjetasCitasComponente extends StatelessWidget {
                       Text(
                         cita.nombreCompleto,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF2D3748),
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       _buildFacultadBadge(cita.facultad),
@@ -109,23 +137,26 @@ class TarjetasCitasComponente extends StatelessWidget {
                 _buildEstadoIndicator(cita.estado),
               ],
             ),
-            const SizedBox(height: 12),
-            const Divider(color: Color(0xFFE2E8F0)),
-            const SizedBox(height: 12),
-            // Información de la cita
-            _buildInfoRow('Programa:', cita.programa),
-            _buildInfoRow('Motivo:', cita.motivoConsulta),
-            _buildInfoRow('Atención:', '${cita.primeraVez ? "#01" : "#02+"} - ${DateFormat('dd/MM/yyyy').format(cita.fechaHora)}'),
-            _buildInfoRow('Turno:', _obtenerTurno(cita.fechaHora)),
-            if (cita.estudianteTelefono?.isNotEmpty == true)
-              _buildInfoRow('Teléfono:', cita.estudianteTelefono!),
-            if (cita.estudianteEmail?.isNotEmpty == true)
-              _buildInfoRow('Email:', cita.estudianteEmail!),
-            if (cita.observaciones?.isNotEmpty == true)
-              _buildInfoRow('Observaciones:', cita.observaciones!),
-            const SizedBox(height: 12),
-            const Divider(color: Color(0xFFE2E8F0)),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            const Divider(color: Color(0xFFE2E8F0), height: 1),
+            const SizedBox(height: 8),
+            // Información de la cita (compacta)
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoRow('Programa:', cita.programa),
+                    _buildInfoRow('Motivo:', cita.motivoConsulta),
+                    _buildInfoRow('Atención:', '${cita.primeraVez ? "#01" : "#02+"} - ${DateFormat('dd/MM/yyyy').format(cita.fechaHora)}'),
+                    _buildInfoRow('Turno:', _obtenerTurno(cita.fechaHora)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Divider(color: Color(0xFFE2E8F0), height: 1),
+            const SizedBox(height: 8),
             // Acciones
             Row(
               children: [
@@ -137,7 +168,7 @@ class TarjetasCitasComponente extends StatelessWidget {
                     () => onVerDetalles(cita),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: _buildActionButton(
                     'Editar',
@@ -146,7 +177,7 @@ class TarjetasCitasComponente extends StatelessWidget {
                     () => onEditar(cita),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: _buildActionButton(
                     'Eliminar',
@@ -176,16 +207,16 @@ class TarjetasCitasComponente extends StatelessWidget {
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
+            width: 75,
             child: Text(
               label,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 11,
                 color: Color(0xFF718096),
               ),
             ),
@@ -194,10 +225,12 @@ class TarjetasCitasComponente extends StatelessWidget {
             child: Text(
               value,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 12,
                 color: Color(0xFF2D3748),
                 fontWeight: FontWeight.w500,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

@@ -485,6 +485,10 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
               valorInicial: _fechaSeleccionada,
               fechaMinima: DateTime.now(),
               fechaMaxima: DateTime.now().add(const Duration(days: 365)),
+              selectableDayPredicate: (DateTime date) {
+                // Excluir domingos (weekday 7 es domingo)
+                return date.weekday != DateTime.sunday;
+              },
               onChanged: (fecha) {
                 setState(() {
                   _fechaSeleccionada = fecha;
@@ -526,6 +530,10 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
                     valorInicial: _fechaSeleccionada,
                     fechaMinima: DateTime.now(),
                     fechaMaxima: DateTime.now().add(const Duration(days: 365)),
+                    selectableDayPredicate: (DateTime date) {
+                      // Excluir domingos (weekday 7 es domingo)
+                      return date.weekday != DateTime.sunday;
+                    },
                     onChanged: (fecha) {
                       setState(() {
                         _fechaSeleccionada = fecha;

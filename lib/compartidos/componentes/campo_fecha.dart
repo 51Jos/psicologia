@@ -15,6 +15,7 @@ class CampoFecha extends StatefulWidget {
   final bool requerido;
   final DatePickerMode modoInicial;
   final String formatoFecha;
+  final bool Function(DateTime)? selectableDayPredicate;
 
   const CampoFecha({
     super.key,
@@ -29,6 +30,7 @@ class CampoFecha extends StatefulWidget {
     this.requerido = false,
     this.modoInicial = DatePickerMode.day,
     this.formatoFecha = 'corta',
+    this.selectableDayPredicate,
   });
 
   @override
@@ -66,13 +68,14 @@ class _CampoFechaState extends State<CampoFecha> {
 
     final DateTime? fechaNueva = await showDatePicker(
       context: context,
-      initialDate: fechaInicial.isBefore(primeraFecha) 
-          ? primeraFecha 
-          : fechaInicial.isAfter(ultimaFecha) 
-              ? ultimaFecha 
+      initialDate: fechaInicial.isBefore(primeraFecha)
+          ? primeraFecha
+          : fechaInicial.isAfter(ultimaFecha)
+              ? ultimaFecha
               : fechaInicial,
       firstDate: primeraFecha,
       lastDate: ultimaFecha,
+      selectableDayPredicate: widget.selectableDayPredicate,
       initialDatePickerMode: widget.modoInicial,
       locale: const Locale('es', 'ES'),
       builder: (BuildContext context, Widget? child) {
