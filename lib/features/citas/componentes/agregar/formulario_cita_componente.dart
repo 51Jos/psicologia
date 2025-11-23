@@ -41,10 +41,6 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
   final _observacionesController = TextEditingController();
   final _psicologoIdController = TextEditingController();
 
-  // FocusNodes para autocomplete
-  final _nombreFocusNode = FocusNode();
-  final _apellidosFocusNode = FocusNode();
-
   // Variables de estado
   String? _facultadSeleccionada;
   String? _programaSeleccionado;
@@ -260,8 +256,6 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
     _motivoController.dispose();
     _observacionesController.dispose();
     _psicologoIdController.dispose();
-    _nombreFocusNode.dispose();
-    _apellidosFocusNode.dispose();
     super.dispose();
   }
 
@@ -871,9 +865,7 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
   }
 
   Widget _buildAutocompleteNombre() {
-    return RawAutocomplete<Map<String, String>>(
-      textEditingController: _estudianteNombreController,
-      focusNode: _nombreFocusNode,
+    return Autocomplete<Map<String, String>>(
       optionsBuilder: (TextEditingValue textEditingValue) {
         if (textEditingValue.text.isEmpty) {
           return const Iterable<Map<String, String>>.empty();
@@ -886,15 +878,20 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
       },
       displayStringForOption: (Map<String, String> option) => option['nombre']!,
       onSelected: (Map<String, String> estudiante) {
-        // Actualizar todos los datos del estudiante
-        setState(() {
-          _actualizarDatosEstudiante(estudiante);
-        });
+        _actualizarDatosEstudiante(estudiante);
       },
-      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+        // Inicializar con el valor del estudiante si existe
+        if (_estudianteNombreController.text.isNotEmpty && controller.text.isEmpty) {
+          controller.text = _estudianteNombreController.text;
+        }
+
         return TextFormField(
-          controller: textEditingController,
+          controller: controller,
           focusNode: focusNode,
+          onChanged: (value) {
+            _estudianteNombreController.text = value;
+          },
           decoration: InputDecoration(
             labelText: 'Nombre *',
             hintText: 'Escribe para buscar estudiante...',
@@ -928,41 +925,11 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
           },
         );
       },
-      optionsViewBuilder: (context, onSelected, options) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4.0,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final option = options.elementAt(index);
-                  return InkWell(
-                    onTap: () {
-                      onSelected(option);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(option['nombreCompleto']!),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 
   Widget _buildAutocompleteApellidos() {
-    return RawAutocomplete<Map<String, String>>(
-      textEditingController: _estudianteApellidosController,
-      focusNode: _apellidosFocusNode,
+    return Autocomplete<Map<String, String>>(
       optionsBuilder: (TextEditingValue textEditingValue) {
         if (textEditingValue.text.isEmpty) {
           return const Iterable<Map<String, String>>.empty();
@@ -975,15 +942,20 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
       },
       displayStringForOption: (Map<String, String> option) => option['apellidos']!,
       onSelected: (Map<String, String> estudiante) {
-        // Actualizar todos los datos del estudiante
-        setState(() {
-          _actualizarDatosEstudiante(estudiante);
-        });
+        _actualizarDatosEstudiante(estudiante);
       },
-      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+        // Inicializar con el valor del estudiante si existe
+        if (_estudianteApellidosController.text.isNotEmpty && controller.text.isEmpty) {
+          controller.text = _estudianteApellidosController.text;
+        }
+
         return TextFormField(
-          controller: textEditingController,
+          controller: controller,
           focusNode: focusNode,
+          onChanged: (value) {
+            _estudianteApellidosController.text = value;
+          },
           decoration: InputDecoration(
             labelText: 'Apellidos *',
             hintText: 'Escribe para buscar estudiante...',
@@ -1015,34 +987,6 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
             }
             return null;
           },
-        );
-      },
-      optionsViewBuilder: (context, onSelected, options) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4.0,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final option = options.elementAt(index);
-                  return InkWell(
-                    onTap: () {
-                      onSelected(option);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(option['nombreCompleto']!),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
         );
       },
     );
