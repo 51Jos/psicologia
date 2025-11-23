@@ -5,6 +5,7 @@ import 'package:psicologia/features/citas/vistas/lista_cita.dart';
 import 'package:psicologia/features/citas/vistas/formulario_cita_vista.dart';
 import 'package:psicologia/features/reservas_estudiante/vistas/reservas_estudiante_vista.dart';
 import 'package:psicologia/features/perfil/vistas/perfil_vista.dart';
+import 'package:psicologia/features/perfil_estudiante/vistas/dashboard_estudiante_vista.dart';
 
 class RutasApp {
   // Prevenir instanciación
@@ -31,6 +32,7 @@ class RutasApp {
   static const String editarEstudiante = '/estudiantes/editar';
   static const String perfilEstudiante = '/estudiantes/perfil';
   static const String reservasEstudiante = '/estudiante/reservas';
+  static const String dashboardEstudiante = '/estudiante/dashboard';
   
   // Rutas de Reportes
   static const String reportes = '/reportes';
@@ -51,6 +53,7 @@ class RutasApp {
     agendarCita: (_) => const FormularioCitaVista(),
     listaAtenciones: (_) => const ListaCita(),
     reservasEstudiante: (_) => const ReservasEstudianteVista(),
+    dashboardEstudiante: (_) => const DashboardEstudianteVista(),
     //registrarAtencion: (_) => const RegistrarAtencionVista(),
     //listaCitas: (_) => const ListaCitasVista(),
     //agendarCita: (_) => const AgendarCitaVista(),
@@ -116,27 +119,5 @@ class RutasApp {
 
   static bool puedeVolver(BuildContext context) {
     return Navigator.canPop(context);
-  }
-}
-
-// Placeholder temporal para vistas que aún no existen
-class PerfilEstudianteVista extends StatelessWidget {
-  final String estudianteId;
-  
-  const PerfilEstudianteVista({
-    super.key,
-    required this.estudianteId,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Perfil del Estudiante'),
-      ),
-      body: Center(
-        child: Text('Estudiante ID: $estudianteId'),
-      ),
-    );
   }
 }
