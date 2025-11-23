@@ -41,6 +41,10 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
   final _observacionesController = TextEditingController();
   final _psicologoIdController = TextEditingController();
 
+  // FocusNodes para autocomplete
+  final _nombreFocusNode = FocusNode();
+  final _apellidosFocusNode = FocusNode();
+
   // Variables de estado
   String? _facultadSeleccionada;
   String? _programaSeleccionado;
@@ -256,6 +260,8 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
     _motivoController.dispose();
     _observacionesController.dispose();
     _psicologoIdController.dispose();
+    _nombreFocusNode.dispose();
+    _apellidosFocusNode.dispose();
     super.dispose();
   }
 
@@ -867,7 +873,7 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
   Widget _buildAutocompleteNombre() {
     return RawAutocomplete<Map<String, String>>(
       textEditingController: _estudianteNombreController,
-      focusNode: FocusNode(),
+      focusNode: _nombreFocusNode,
       optionsBuilder: (TextEditingValue textEditingValue) {
         if (textEditingValue.text.isEmpty) {
           return const Iterable<Map<String, String>>.empty();
@@ -956,7 +962,7 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
   Widget _buildAutocompleteApellidos() {
     return RawAutocomplete<Map<String, String>>(
       textEditingController: _estudianteApellidosController,
-      focusNode: FocusNode(),
+      focusNode: _apellidosFocusNode,
       optionsBuilder: (TextEditingValue textEditingValue) {
         if (textEditingValue.text.isEmpty) {
           return const Iterable<Map<String, String>>.empty();
