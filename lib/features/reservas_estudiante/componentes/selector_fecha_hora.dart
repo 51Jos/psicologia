@@ -31,6 +31,9 @@ class SelectorFechaHora extends StatelessWidget {
       initialDate: fechaSeleccionada ?? DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 90)),
+      selectableDayPredicate: (DateTime date) {
+        return date.weekday != DateTime.sunday;
+      },
       locale: const Locale('es', 'ES'),
       builder: (context, child) {
         return Theme(
