@@ -491,6 +491,19 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
               fechaMinima: DateTime.now(),
               fechaMaxima: DateTime.now().add(const Duration(days: 365)),
               onChanged: (fecha) {
+                if (fecha != null && fecha.weekday == DateTime.sunday) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('⚠️ No se atiende los domingos. Por favor selecciona otro día.'),
+                      backgroundColor: Colors.orange,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                  setState(() {
+                    _fechaSeleccionada = null;
+                  });
+                  return;
+                }
                 setState(() {
                   _fechaSeleccionada = fecha;
                 });
@@ -499,6 +512,9 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
               validador: (fecha) {
                 if (fecha == null) {
                   return 'La fecha es requerida';
+                }
+                if (fecha.weekday == DateTime.sunday) {
+                  return 'No se puede agendar citas los domingos';
                 }
                 return null;
               },
@@ -532,6 +548,19 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
                     fechaMinima: DateTime.now(),
                     fechaMaxima: DateTime.now().add(const Duration(days: 365)),
                     onChanged: (fecha) {
+                      if (fecha != null && fecha.weekday == DateTime.sunday) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('⚠️ No se atiende los domingos. Por favor selecciona otro día.'),
+                            backgroundColor: Colors.orange,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                        setState(() {
+                          _fechaSeleccionada = null;
+                        });
+                        return;
+                      }
                       setState(() {
                         _fechaSeleccionada = fecha;
                       });
@@ -540,6 +569,9 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
                     validador: (fecha) {
                       if (fecha == null) {
                         return 'La fecha es requerida';
+                      }
+                      if (fecha.weekday == DateTime.sunday) {
+                        return 'No se puede agendar citas los domingos';
                       }
                       return null;
                     },

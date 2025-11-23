@@ -45,6 +45,19 @@ class SelectorFechaHora extends StatelessWidget {
     );
 
     if (picked != null) {
+      // Validar que no sea domingo
+      if (picked.weekday == DateTime.sunday) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ No se atiende los domingos. Por favor selecciona otro día.'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
       onFechaChanged(picked);
     }
   }
