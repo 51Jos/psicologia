@@ -3,9 +3,8 @@ import 'package:psicologia/features/autenticacion/vistas/login_vista.dart';
 import 'package:psicologia/features/autenticacion/vistas/registro_vista.dart';
 import 'package:psicologia/features/citas/vistas/lista_cita.dart';
 import 'package:psicologia/features/citas/vistas/formulario_cita_vista.dart';
-import 'package:psicologia/features/reservas_estudiante/vistas/reservas_estudiante_vista.dart';
+import 'package:psicologia/features/reservas_estudiante/vistas/estudiante_principal_vista.dart';
 import 'package:psicologia/features/perfil/vistas/perfil_vista.dart';
-import 'package:psicologia/features/perfil_estudiante/vistas/dashboard_estudiante_vista.dart';
 
 class RutasApp {
   // Prevenir instanciación
@@ -52,8 +51,8 @@ class RutasApp {
     perfil: (_) => const PerfilVista(),
     agendarCita: (_) => const FormularioCitaVista(),
     listaAtenciones: (_) => const ListaCita(),
-    reservasEstudiante: (_) => const ReservasEstudianteVista(),
-    dashboardEstudiante: (_) => const DashboardEstudianteVista(),
+    reservasEstudiante: (_) => const EstudiantePrincipalVista(),
+    dashboardEstudiante: (_) => const EstudiantePrincipalVista(),
     //registrarAtencion: (_) => const RegistrarAtencionVista(),
     //listaCitas: (_) => const ListaCitasVista(),
     //agendarCita: (_) => const AgendarCitaVista(),
