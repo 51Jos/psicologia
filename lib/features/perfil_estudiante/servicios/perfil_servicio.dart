@@ -1,25 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../citas/modelos/estudiante_modelo.dart';
+import '../../../nucleo/configuracion_firebase.dart';
+import '../../autenticacion/modelos/usuario.dart';
 
 class PerfilServicio {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Obtener perfil del estudiante actual
-  Future<EstudianteModelo?> obtenerPerfilActual() async {
+  Future<UsuarioModelo?> obtenerPerfilActual() async {
     try {
       final user = _auth.currentUser;
       if (user == null) return null;
 
-      final doc = await _firestore
-          .collection('estudiantes')
-          .doc(user.uid)
-          .get();
+      final doc = await ConfiguracionFirebase.usuarios.doc(user.uid).get();
 
       if (!doc.exists) return null;
 
-      return EstudianteModelo.fromFirestore(doc);
+      return UsuarioModelo.fromFirestore(doc);
     } catch (e) {
       print('Error al obtener perfil: $e');
       return null;
@@ -27,46 +24,34 @@ class PerfilServicio {
   }
 
   // Stream del perfil para actualizaciones en tiempo real
-  Stream<EstudianteModelo?> streamPerfil() {
+  Stream<UsuarioModelo?> streamPerfil() {
     final user = _auth.currentUser;
     if (user == null) return Stream.value(null);
 
-    return _firestore
-        .collection('estudiantes')
+    return ConfiguracionFirebase.usuarios
         .doc(user.uid)
         .snapshots()
         .map((doc) {
       if (!doc.exists) return null;
-      return EstudianteModelo.fromFirestore(doc);
+      return UsuarioModelo.fromFirestore(doc);
     });
   }
 
   // Actualizar perfil (sin email)
-  Future<bool> actualizarPerfil(EstudianteModelo estudiante) async {
+  Future<bool> actualizarPerfil(UsuarioModelo usuario) async {
     try {
       final user = _auth.currentUser;
       if (user == null) return false;
 
       // Preparar datos para actualizar (sin email)
       final data = {
-        'nombres': estudiante.nombres,
-        'apellidos': estudiante.apellidos,
-        'telefono': estudiante.telefono,
-        'facultad': estudiante.facultad,
-        'programa': estudiante.programa,
-        'ciclo': estudiante.ciclo,
-        'fechaNacimiento': estudiante.fechaNacimiento != null
-            ? Timestamp.fromDate(estudiante.fechaNacimiento!)
-            : null,
-        'genero': estudiante.genero,
-        'direccion': estudiante.direccion,
-        'ultimaActualizacion': FieldValue.serverTimestamp(),
+        'nombres': usuario.nombres,
+        'apellidos': usuario.apellidos,
+        'telefono': usuario.telefono,
+        'fechaActualizacion': FieldValue.serverTimestamp(),
       };
 
-      await _firestore
-          .collection('estudiantes')
-          .doc(user.uid)
-          .update(data);
+      await ConfiguracionFirebase.usuarios.doc(user.uid).update(data);
 
       return true;
     } catch (e) {

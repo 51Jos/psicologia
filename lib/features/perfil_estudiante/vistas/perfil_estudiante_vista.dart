@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../compartidos/componentes/campo_texto.dart';
-import '../../../compartidos/componentes/campo_fecha.dart';
-import '../../../compartidos/componentes/campo_selector.dart';
 import '../../../compartidos/componentes/botones/boton_primario.dart';
 import '../../../compartidos/tema/colores_app.dart';
-import '../../citas/modelos/estudiante_modelo.dart';
+import '../../autenticacion/modelos/usuario.dart';
 import '../servicios/perfil_servicio.dart';
 
 class PerfilEstudianteVista extends StatefulWidget {
@@ -24,9 +22,6 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
   final _apellidosController = TextEditingController();
   final _emailController = TextEditingController();
   final _telefonoController = TextEditingController();
-  final _codigoController = TextEditingController();
-  final _direccionController = TextEditingController();
-  final _cicloController = TextEditingController();
 
   // Controladores de contraseña
   final _contrasenaActualController = TextEditingController();
@@ -34,43 +29,12 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
   final _confirmarContrasenaController = TextEditingController();
 
   // Variables de estado
-  String? _facultadSeleccionada;
-  String? _programaSeleccionado;
-  DateTime? _fechaNacimiento;
-  String? _generoSeleccionado;
   bool _cargando = true;
   bool _guardando = false;
   bool _cambiandoContrasena = false;
   bool _mostrarCambioContrasena = false;
 
-  // Programas académicos por facultad - UCSS Nueva Cajamarca
-  final Map<String, List<OpcionSelector<String>>> _programasPorFacultad = {
-    'FC': [
-      OpcionSelector(valor: 'Biología', etiqueta: 'Biología'),
-      OpcionSelector(valor: 'Matemática', etiqueta: 'Matemática'),
-    ],
-    'FCS': [
-      OpcionSelector(valor: 'Enfermería', etiqueta: 'Enfermería'),
-      OpcionSelector(valor: 'Psicología', etiqueta: 'Psicología'),
-      OpcionSelector(valor: 'Obstetricia', etiqueta: 'Obstetricia'),
-    ],
-    'FEI': [
-      OpcionSelector(valor: 'Ingeniería Civil', etiqueta: 'Ingeniería Civil'),
-      OpcionSelector(valor: 'Ingeniería de Sistemas', etiqueta: 'Ingeniería de Sistemas'),
-      OpcionSelector(valor: 'Ingeniería Agrónoma', etiqueta: 'Ingeniería Agrónoma'),
-      OpcionSelector(valor: 'Ingeniería Ambiental', etiqueta: 'Ingeniería Ambiental'),
-    ],
-    'FCE': [
-      OpcionSelector(valor: 'Administración', etiqueta: 'Administración'),
-      OpcionSelector(valor: 'Contabilidad', etiqueta: 'Contabilidad'),
-      OpcionSelector(valor: 'Economía', etiqueta: 'Economía'),
-    ],
-    'FD': [
-      OpcionSelector(valor: 'Derecho', etiqueta: 'Derecho'),
-    ],
-  };
-
-  EstudianteModelo? _estudiante;
+  UsuarioModelo? _usuario;
 
   @override
   void initState() {
@@ -84,9 +48,6 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
     _apellidosController.dispose();
     _emailController.dispose();
     _telefonoController.dispose();
-    _codigoController.dispose();
-    _direccionController.dispose();
-    _cicloController.dispose();
     _contrasenaActualController.dispose();
     _nuevaContrasenaController.dispose();
     _confirmarContrasenaController.dispose();
@@ -96,22 +57,15 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
   Future<void> _cargarPerfil() async {
     setState(() => _cargando = true);
 
-    final estudiante = await _perfilServicio.obtenerPerfilActual();
+    final usuario = await _perfilServicio.obtenerPerfilActual();
 
-    if (estudiante != null) {
+    if (usuario != null) {
       setState(() {
-        _estudiante = estudiante;
-        _nombresController.text = estudiante.nombres;
-        _apellidosController.text = estudiante.apellidos;
-        _emailController.text = estudiante.email;
-        _telefonoController.text = estudiante.telefono ?? '';
-        _codigoController.text = estudiante.codigo ?? '';
-        _direccionController.text = estudiante.direccion ?? '';
-        _cicloController.text = estudiante.ciclo ?? '';
-        _facultadSeleccionada = estudiante.facultad;
-        _programaSeleccionado = estudiante.programa;
-        _fechaNacimiento = estudiante.fechaNacimiento;
-        _generoSeleccionado = estudiante.genero;
+        _usuario = usuario;
+        _nombresController.text = usuario.nombres;
+        _apellidosController.text = usuario.apellidos;
+        _emailController.text = usuario.email;
+        _telefonoController.text = usuario.telefono ?? '';
         _cargando = false;
       });
     } else {
@@ -132,26 +86,13 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
 
     setState(() => _guardando = true);
 
-    final estudianteActualizado = EstudianteModelo(
-      id: _estudiante!.id,
-      codigo: _codigoController.text,
+    final usuarioActualizado = _usuario!.copyWith(
       nombres: _nombresController.text,
       apellidos: _apellidosController.text,
-      email: _estudiante!.email, // Email no se puede cambiar
-      telefono: _telefonoController.text,
-      facultad: _facultadSeleccionada ?? '',
-      programa: _programaSeleccionado ?? '',
-      ciclo: _cicloController.text,
-      fechaNacimiento: _fechaNacimiento,
-      genero: _generoSeleccionado,
-      direccion: _direccionController.text,
-      fechaRegistro: _estudiante!.fechaRegistro,
-      activo: _estudiante!.activo,
-      totalCitas: _estudiante!.totalCitas,
-      totalAtenciones: _estudiante!.totalAtenciones,
+      telefono: _telefonoController.text.isEmpty ? null : _telefonoController.text,
     );
 
-    final exito = await _perfilServicio.actualizarPerfil(estudianteActualizado);
+    final exito = await _perfilServicio.actualizarPerfil(usuarioActualizado);
 
     setState(() => _guardando = false);
 
@@ -221,7 +162,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
               padding: EdgeInsets.all(esMovil ? 16 : 24),
               child: Center(
                 child: Container(
-                  constraints: const BoxConstraints(maxWidth: 1000),
+                  constraints: const BoxConstraints(maxWidth: 800),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -254,9 +195,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
               radius: esMovil ? 40 : 50,
               backgroundColor: ColoresApp.primario,
               child: Text(
-                _estudiante != null
-                    ? '${_estudiante!.nombres[0]}${_estudiante!.apellidos[0]}'
-                    : '??',
+                _usuario != null ? _usuario!.iniciales : '??',
                 style: TextStyle(
                   fontSize: esMovil ? 32 : 40,
                   fontWeight: FontWeight.bold,
@@ -270,9 +209,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _estudiante != null
-                        ? '${_estudiante!.nombres} ${_estudiante!.apellidos}'
-                        : 'Cargando...',
+                    _usuario != null ? _usuario!.nombreCompleto : 'Cargando...',
                     style: TextStyle(
                       fontSize: esMovil ? 20 : 24,
                       fontWeight: FontWeight.bold,
@@ -281,22 +218,28 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _estudiante?.email ?? '',
+                    _usuario?.email ?? '',
                     style: TextStyle(
                       fontSize: esMovil ? 14 : 16,
                       color: ColoresApp.textoGris,
                     ),
                   ),
-                  if (_estudiante?.codigo != null && _estudiante!.codigo.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      'Código: ${_estudiante!.codigo}',
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: ColoresApp.primario.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      'Estudiante',
                       style: TextStyle(
-                        fontSize: esMovil ? 13 : 15,
-                        color: ColoresApp.textoGris,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: ColoresApp.primario,
                       ),
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
@@ -337,6 +280,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                   etiqueta: 'Nombres',
                   requerido: true,
                   placeholder: 'Ingresa tus nombres',
+                  iconoPrefijo: Icons.person_outline,
                   validador: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Los nombres son requeridos';
@@ -350,6 +294,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                   etiqueta: 'Apellidos',
                   requerido: true,
                   placeholder: 'Ingresa tus apellidos',
+                  iconoPrefijo: Icons.person_outline,
                   validador: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Los apellidos son requeridos';
@@ -366,6 +311,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                         etiqueta: 'Nombres',
                         requerido: true,
                         placeholder: 'Ingresa tus nombres',
+                        iconoPrefijo: Icons.person_outline,
                         validador: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Los nombres son requeridos';
@@ -381,6 +327,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                         etiqueta: 'Apellidos',
                         requerido: true,
                         placeholder: 'Ingresa tus apellidos',
+                        iconoPrefijo: Icons.person_outline,
                         validador: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Los apellidos son requeridos';
@@ -399,7 +346,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                 etiqueta: 'Email',
                 placeholder: 'Email',
                 habilitado: false,
-                iconoPrefijo: Icons.lock,
+                iconoPrefijo: Icons.email,
               ),
               const SizedBox(height: 4),
               Text(
@@ -412,225 +359,14 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
               ),
               const SizedBox(height: 16),
 
-              // Teléfono y Código
-              if (esMovil) ...[
-                CampoTexto(
-                  controlador: _telefonoController,
-                  etiqueta: 'Teléfono',
-                  placeholder: 'Ingresa tu teléfono',
-                  tipoTeclado: TextInputType.phone,
-                ),
-                const SizedBox(height: 16),
-                CampoTexto(
-                  controlador: _codigoController,
-                  etiqueta: 'Código de estudiante',
-                  placeholder: 'Código',
-                ),
-              ] else
-                Row(
-                  children: [
-                    Expanded(
-                      child: CampoTexto(
-                        controlador: _telefonoController,
-                        etiqueta: 'Teléfono',
-                        placeholder: 'Ingresa tu teléfono',
-                        tipoTeclado: TextInputType.phone,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: CampoTexto(
-                        controlador: _codigoController,
-                        etiqueta: 'Código de estudiante',
-                        placeholder: 'Código',
-                      ),
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 16),
-
-              // Facultad y Programa
-              if (esMovil) ...[
-                CampoSelector<String>(
-                  key: ValueKey(_facultadSeleccionada),
-                  etiqueta: 'Facultad',
-                  requerido: true,
-                  valorInicial: _facultadSeleccionada,
-                  opciones: [
-                    OpcionSelector(valor: 'FC', etiqueta: 'Ciencias'),
-                    OpcionSelector(valor: 'FCS', etiqueta: 'Ciencias de la Salud'),
-                    OpcionSelector(valor: 'FEI', etiqueta: 'Ingeniería'),
-                    OpcionSelector(valor: 'FCE', etiqueta: 'Ciencias Económicas'),
-                    OpcionSelector(valor: 'FD', etiqueta: 'Derecho'),
-                  ],
-                  onChanged: (valor) {
-                    setState(() {
-                      _facultadSeleccionada = valor;
-                      _programaSeleccionado = null;
-                    });
-                  },
-                  validador: (valor) {
-                    if (valor == null) {
-                      return 'La facultad es requerida';
-                    }
-                    return null;
-                  },
-                ),
-              ] else
-                CampoSelector<String>(
-                  key: ValueKey(_facultadSeleccionada),
-                  etiqueta: 'Facultad',
-                  requerido: true,
-                  valorInicial: _facultadSeleccionada,
-                  opciones: [
-                    OpcionSelector(valor: 'FC', etiqueta: 'Facultad de Ciencias'),
-                    OpcionSelector(valor: 'FCS', etiqueta: 'Facultad de Ciencias de la Salud'),
-                    OpcionSelector(valor: 'FEI', etiqueta: 'Facultad de Ingeniería'),
-                    OpcionSelector(valor: 'FCE', etiqueta: 'Facultad de Ciencias Económicas'),
-                    OpcionSelector(valor: 'FD', etiqueta: 'Facultad de Derecho'),
-                  ],
-                  onChanged: (valor) {
-                    setState(() {
-                      _facultadSeleccionada = valor;
-                      _programaSeleccionado = null;
-                    });
-                  },
-                  validador: (valor) {
-                    if (valor == null) {
-                      return 'La facultad es requerida';
-                    }
-                    return null;
-                  },
-                ),
-              const SizedBox(height: 16),
-
-              // Programa Académico
-              if (_facultadSeleccionada != null && _programasPorFacultad.containsKey(_facultadSeleccionada))
-                CampoSelector<String>(
-                  key: ValueKey('$_facultadSeleccionada-$_programaSeleccionado'),
-                  etiqueta: 'Programa Académico',
-                  requerido: true,
-                  valorInicial: _programaSeleccionado,
-                  opciones: _programasPorFacultad[_facultadSeleccionada]!,
-                  onChanged: (valor) {
-                    setState(() {
-                      _programaSeleccionado = valor;
-                    });
-                  },
-                  validador: (valor) {
-                    if (valor == null) {
-                      return 'El programa es requerido';
-                    }
-                    return null;
-                  },
-                )
-              else
-                CampoTexto(
-                  etiqueta: 'Programa Académico',
-                  requerido: true,
-                  placeholder: 'Primero selecciona una facultad',
-                  habilitado: false,
-                ),
-              const SizedBox(height: 16),
-
-              // Ciclo y Fecha de Nacimiento
-              if (esMovil) ...[
-                CampoTexto(
-                  controlador: _cicloController,
-                  etiqueta: 'Ciclo',
-                  placeholder: 'Ej: V',
-                ),
-                const SizedBox(height: 16),
-                CampoFecha(
-                  etiqueta: 'Fecha de Nacimiento',
-                  valorInicial: _fechaNacimiento,
-                  fechaMaxima: DateTime.now(),
-                  onChanged: (fecha) {
-                    setState(() {
-                      _fechaNacimiento = fecha;
-                    });
-                  },
-                ),
-              ] else
-                Row(
-                  children: [
-                    Expanded(
-                      child: CampoTexto(
-                        controlador: _cicloController,
-                        etiqueta: 'Ciclo',
-                        placeholder: 'Ej: V',
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: CampoFecha(
-                        etiqueta: 'Fecha de Nacimiento',
-                        valorInicial: _fechaNacimiento,
-                        fechaMaxima: DateTime.now(),
-                        onChanged: (fecha) {
-                          setState(() {
-                            _fechaNacimiento = fecha;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 16),
-
-              // Género y Dirección
-              if (esMovil) ...[
-                CampoSelector<String>(
-                  etiqueta: 'Género',
-                  valorInicial: _generoSeleccionado,
-                  opciones: [
-                    OpcionSelector(valor: 'M', etiqueta: 'Masculino'),
-                    OpcionSelector(valor: 'F', etiqueta: 'Femenino'),
-                    OpcionSelector(valor: 'O', etiqueta: 'Otro'),
-                  ],
-                  onChanged: (valor) {
-                    setState(() {
-                      _generoSeleccionado = valor;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                CampoTexto(
-                  controlador: _direccionController,
-                  etiqueta: 'Dirección',
-                  placeholder: 'Ingresa tu dirección',
-                  lineasMax: 2,
-                ),
-              ] else
-                Row(
-                  children: [
-                    Expanded(
-                      child: CampoSelector<String>(
-                        etiqueta: 'Género',
-                        valorInicial: _generoSeleccionado,
-                        opciones: [
-                          OpcionSelector(valor: 'M', etiqueta: 'Masculino'),
-                          OpcionSelector(valor: 'F', etiqueta: 'Femenino'),
-                          OpcionSelector(valor: 'O', etiqueta: 'Otro'),
-                        ],
-                        onChanged: (valor) {
-                          setState(() {
-                            _generoSeleccionado = valor;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: CampoTexto(
-                        controlador: _direccionController,
-                        etiqueta: 'Dirección',
-                        placeholder: 'Ingresa tu dirección',
-                        lineasMax: 2,
-                      ),
-                    ),
-                  ],
-                ),
+              // Teléfono
+              CampoTexto(
+                controlador: _telefonoController,
+                etiqueta: 'Teléfono',
+                placeholder: 'Ingresa tu teléfono',
+                tipoTeclado: TextInputType.phone,
+                iconoPrefijo: Icons.phone,
+              ),
               const SizedBox(height: 24),
 
               // Botón de guardar
@@ -704,6 +440,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                       requerido: true,
                       obscureText: true,
                       placeholder: 'Ingresa tu contraseña actual',
+                      iconoPrefijo: Icons.lock_outline,
                       validador: (value) {
                         if (value == null || value.isEmpty) {
                           return 'La contraseña actual es requerida';
@@ -718,6 +455,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                       requerido: true,
                       obscureText: true,
                       placeholder: 'Ingresa tu nueva contraseña',
+                      iconoPrefijo: Icons.lock,
                       validador: (value) {
                         if (value == null || value.isEmpty) {
                           return 'La nueva contraseña es requerida';
@@ -735,6 +473,7 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                       requerido: true,
                       obscureText: true,
                       placeholder: 'Confirma tu nueva contraseña',
+                      iconoPrefijo: Icons.lock,
                       validador: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Debes confirmar la contraseña';
