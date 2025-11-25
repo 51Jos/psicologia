@@ -161,6 +161,8 @@ class AuthControlador extends ChangeNotifier {
     required String nombres,
     required String apellidos,
     String? telefono,
+    String? facultad,
+    String? programa,
   }) async {
     try {
       _estado = const AuthCargando();
@@ -174,6 +176,8 @@ class AuthControlador extends ChangeNotifier {
         nombres: nombres,
         apellidos: apellidos,
         telefono: telefono,
+        facultad: facultad,
+        programa: programa,
       );
 
       _usuarioActual = usuarioCreado;

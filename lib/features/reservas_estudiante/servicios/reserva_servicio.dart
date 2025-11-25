@@ -163,32 +163,52 @@ class ReservaServicio {
     try {
       final ocupados = await _citaServicio.obtenerHorariosOcupados(psicologoId, fecha);
 
-      // Generar horarios disponibles de 8:00 AM a 6:00 PM
+      // Generar horarios disponibles de 8:00 AM a 9:30 PM
+      // Duración fija de 30 minutos por cita
+      // Recesos: 1:00 PM - 2:00 PM y 6:00 PM - 7:00 PM
+      const duracionCita = 30; // minutos
       final List<DateTime> horariosDisponibles = [];
 
-      for (int hora = 8; hora < 18; hora++) {
-        for (int minuto = 0; minuto < 60; minuto += 30) {
-          final horario = DateTime(fecha.year, fecha.month, fecha.day, hora, minuto);
+      for (int hora = 8; hora < 22; hora++) {
+        // Excluir horas de receso
+        // Receso 1: 1:00 PM - 2:00 PM (hora 13)
+        // Receso 2: 6:00 PM - 7:00 PM (hora 18)
+        if (hora == 13 || hora == 18) {
+          continue;
+        }
 
-          // Verificar si el horario está ocupado
+        for (int minuto = 0; minuto < 60; minuto += 30) { // Bloques de 30 minutos
+          final horario = DateTime(fecha.year, fecha.month, fecha.day, hora, minuto);
+          final horarioFin = horario.add(const Duration(minutes: duracionCita));
+
+          // No permitir horarios después de 9:30 PM (21:30)
+          if (hora >= 21 && minuto >= 30) {
+            break;
+          }
+
+          // Verificar si el horario está ocupado o se solapa con alguna cita
           bool estaOcupado = false;
           for (var ocupado in ocupados) {
             final inicio = ocupado['inicio'] as DateTime;
             final fin = ocupado['fin'] as DateTime;
 
-            if (horario.isAfter(inicio.subtract(const Duration(minutes: 1))) &&
-                horario.isBefore(fin)) {
+            // Verificar solapamiento: el nuevo horario no debe solaparse con citas existentes
+            bool seSolapa = !(horarioFin.isBefore(inicio) || horario.isAfter(fin.subtract(const Duration(minutes: 1))));
+
+            if (seSolapa) {
               estaOcupado = true;
               break;
             }
           }
 
+          // Solo agregar si no está ocupado, es futuro y está dentro del horario permitido
           if (!estaOcupado && horario.isAfter(DateTime.now())) {
             horariosDisponibles.add(horario);
           }
         }
       }
 
+      debugPrint('📅 Horarios disponibles para ${fecha.day}/${fecha.month}: ${horariosDisponibles.length} bloques de 30 minutos');
       return horariosDisponibles;
     } catch (e) {
       debugPrint('Error al obtener horarios disponibles: $e');

@@ -10,7 +10,7 @@ class SelectorFechaHora extends StatelessWidget {
   final List<DateTime> horariosDisponibles;
   final Function(DateTime?) onFechaChanged;
   final Function(DateTime?) onHoraChanged;
-  final Function(DuracionCita?) onDuracionChanged;
+  final Function(DuracionCita?)? onDuracionChanged; // Ahora es opcional
   final bool cargandoHorarios;
 
   const SelectorFechaHora({
@@ -21,7 +21,7 @@ class SelectorFechaHora extends StatelessWidget {
     required this.horariosDisponibles,
     required this.onFechaChanged,
     required this.onHoraChanged,
-    required this.onDuracionChanged,
+    this.onDuracionChanged, // Ya no es required
     this.cargandoHorarios = false,
   });
 
@@ -32,6 +32,10 @@ class SelectorFechaHora extends StatelessWidget {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 90)),
       locale: const Locale('es', 'ES'),
+      selectableDayPredicate: (DateTime date) {
+        // Deshabilitar domingos
+        return date.weekday != DateTime.sunday;
+      },
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -45,19 +49,6 @@ class SelectorFechaHora extends StatelessWidget {
     );
 
     if (picked != null) {
-      // Validar que no sea domingo
-      if (picked.weekday == DateTime.sunday) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('⚠️ No se atiende los domingos. Por favor selecciona otro día.'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-        return;
-      }
       onFechaChanged(picked);
     }
   }
@@ -115,22 +106,58 @@ class SelectorFechaHora extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Selector de Duración
-            DropdownButtonFormField<DuracionCita>(
-              value: duracionSeleccionada,
-              decoration: const InputDecoration(
-                labelText: 'Duración',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.timer),
+            // Duración - Editable solo si onDuracionChanged no es null
+            if (onDuracionChanged != null)
+              DropdownButtonFormField<DuracionCita>(
+                value: duracionSeleccionada,
+                decoration: const InputDecoration(
+                  labelText: 'Duración',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.timer),
+                ),
+                items: DuracionCita.values.map((duracion) {
+                  return DropdownMenuItem<DuracionCita>(
+                    value: duracion,
+                    child: Text(duracion.texto),
+                  );
+                }).toList(),
+                onChanged: onDuracionChanged,
+              )
+            else
+              // Mostrar duración fija (no editable)
+              InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Duración',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.timer),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      duracionSeleccionada.texto,
+                      style: const TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: ColoresApp.primario.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Tiempo estándar',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: ColoresApp.primario,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              items: DuracionCita.values.map((duracion) {
-                return DropdownMenuItem<DuracionCita>(
-                  value: duracion,
-                  child: Text(duracion.texto),
-                );
-              }).toList(),
-              onChanged: onDuracionChanged,
-            ),
             const SizedBox(height: 16),
 
             // Selector de Hora
@@ -168,54 +195,58 @@ class SelectorFechaHora extends StatelessWidget {
                   ),
                 )
               else
-                SizedBox(
-                  height: 200,
-                  child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: 2.5,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                    ),
-                    itemCount: horariosDisponibles.length,
-                    itemBuilder: (context, index) {
-                      final horario = horariosDisponibles[index];
-                      final estaSeleccionado = horaSeleccionada != null &&
-                          horario.hour == horaSeleccionada!.hour &&
-                          horario.minute == horaSeleccionada!.minute;
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: MediaQuery.of(context).size.width > 1200
+                        ? 6
+                        : MediaQuery.of(context).size.width > 600
+                            ? 5
+                            : 3,
+                    childAspectRatio: 2.8,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: horariosDisponibles.length,
+                  itemBuilder: (context, index) {
+                    final horario = horariosDisponibles[index];
+                    final horarioFin = horario.add(const Duration(minutes: 30));
+                    final estaSeleccionado = horaSeleccionada != null &&
+                        horario.hour == horaSeleccionada!.hour &&
+                        horario.minute == horaSeleccionada!.minute;
 
-                      return InkWell(
-                        onTap: () => onHoraChanged(horario),
-                        child: Container(
-                          decoration: BoxDecoration(
+                    return InkWell(
+                      onTap: () => onHoraChanged(horario),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: estaSeleccionado
+                              ? ColoresApp.primario
+                              : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
                             color: estaSeleccionado
                                 ? ColoresApp.primario
-                                : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: estaSeleccionado
-                                  ? ColoresApp.primario
-                                  : Colors.grey[300]!,
-                              width: estaSeleccionado ? 2 : 1,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              DateFormat('HH:mm').format(horario),
-                              style: TextStyle(
-                                color: estaSeleccionado
-                                    ? Colors.white
-                                    : Colors.black87,
-                                fontWeight: estaSeleccionado
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
+                                : Colors.grey[300]!,
+                            width: estaSeleccionado ? 2 : 1,
                           ),
                         ),
-                      );
-                    },
-                  ),
+                        child: Center(
+                          child: Text(
+                            '${DateFormat('h:mm a').format(horario)} - ${DateFormat('h:mm a').format(horarioFin)}',
+                            style: TextStyle(
+                              color: estaSeleccionado
+                                  ? Colors.white
+                                  : Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
             ],
           ],

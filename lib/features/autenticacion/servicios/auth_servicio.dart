@@ -104,6 +104,8 @@ class AuthServicio {
     required String nombres,
     required String apellidos,
     String? telefono,
+    String? facultad,
+    String? programa,
   }) async {
     try {
       // Validar que sea email de estudiante
@@ -131,6 +133,8 @@ class AuthServicio {
         activo: true,
         fechaCreacion: DateTime.now(),
         telefono: telefono,
+        facultad: facultad,
+        programa: programa,
       );
 
       await ConfiguracionFirebase.usuarios.doc(usuario.id).set(usuario.toFirestore());

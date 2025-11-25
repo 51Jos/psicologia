@@ -216,7 +216,7 @@ class RegistroVista extends StatelessWidget {
 
                                 // Formulario de Registro
                                 FormularioRegistro(
-                                  onRegistrar: (codigo, password, nombres, apellidos, telefono) async {
+                                  onRegistrar: (codigo, password, nombres, apellidos, telefono, facultad, programa) async {
                                     await authControlador.registrarEstudiante(
                                       context: context,
                                       codigo: codigo,
@@ -224,6 +224,8 @@ class RegistroVista extends StatelessWidget {
                                       nombres: nombres,
                                       apellidos: apellidos,
                                       telefono: telefono,
+                                      facultad: facultad,
+                                      programa: programa,
                                     );
                                   },
                                   cargando: authControlador.estaCargando,

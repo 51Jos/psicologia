@@ -48,6 +48,8 @@ class PerfilServicio {
         'nombres': usuario.nombres,
         'apellidos': usuario.apellidos,
         'telefono': usuario.telefono,
+        'facultad': usuario.facultad,
+        'programa': usuario.programa,
         'fechaActualizacion': FieldValue.serverTimestamp(),
       };
 

@@ -3,12 +3,12 @@ import '../../modelos/cita_modelo.dart';
 import '../../servicios/cita_servicio.dart';
 import '../../../../compartidos/componentes/campo_texto.dart';
 import '../../../../compartidos/componentes/campo_fecha.dart';
-import '../../../../compartidos/componentes/campo_hora.dart';
 import '../../../../compartidos/componentes/campo_selector.dart';
 import '../../../../compartidos/componentes/campo_textarea.dart';
 import '../../../../compartidos/componentes/botones/boton_secundario.dart';
 import '../../../../compartidos/componentes/modal_carga.dart';
 import '../../../../compartidos/tema/colores_app.dart';
+import 'selector_horarios_admin.dart';
 
 class FormularioCitaComponente extends StatefulWidget {
   final CitaModelo? citaInicial;
@@ -54,7 +54,9 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
   bool _inicializado = false;
   List<Map<String, String>> _estudiantesRegistrados = [];
   List<Map<String, dynamic>> _horariosOcupados = [];
+  List<DateTime> _horariosDisponibles = [];
   bool _validandoHorario = false;
+  bool _cargandoHorarios = false;
   String? _conflictoHorario;
 
   // Variable para almacenar el estudiante seleccionado del autocomplete
@@ -154,6 +156,7 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
 
     setState(() {
       _validandoHorario = true;
+      _cargandoHorarios = true;
     });
 
     final horarios = await _citaServicio.obtenerHorariosOcupados(
@@ -161,9 +164,18 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
       _fechaSeleccionada!,
     );
 
+    // Obtener horarios disponibles
+    final disponibles = await _citaServicio.obtenerHorariosDisponibles(
+      psicologoId,
+      _fechaSeleccionada!,
+      _duracionSeleccionada.minutos,
+    );
+
     setState(() {
       _horariosOcupados = horarios;
+      _horariosDisponibles = disponibles;
       _validandoHorario = false;
+      _cargandoHorarios = false;
     });
 
     // Validar el horario actual si ya hay uno seleccionado
@@ -235,13 +247,9 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
       _esPrimeraVez = cita.primeraVez;
     } else {
       _psicologoIdController.text = 'default_psicologo';
-      // Establecer fecha inicial evitando domingos
-      DateTime fechaInicial = DateTime.now().add(const Duration(days: 1));
-      while (fechaInicial.weekday == DateTime.sunday) {
-        fechaInicial = fechaInicial.add(const Duration(days: 1));
-      }
-      _fechaSeleccionada = fechaInicial;
-      _horaSeleccionada = const TimeOfDay(hour: 9, minute: 0);
+      // Dejar fecha y hora vacías para que el usuario las seleccione
+      _fechaSeleccionada = null;
+      _horaSeleccionada = null;
     }
   }
 
@@ -482,123 +490,64 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
 
           const SizedBox(height: 16),
 
-          // Fecha y Hora - Responsive
-          if (esMovil) ...[
-            CampoFecha(
-              etiqueta: 'Fecha',
-              requerido: true,
-              valorInicial: _fechaSeleccionada,
-              fechaMinima: DateTime.now(),
-              fechaMaxima: DateTime.now().add(const Duration(days: 365)),
-              onChanged: (fecha) {
-                if (fecha != null && fecha.weekday == DateTime.sunday) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('⚠️ No se atiende los domingos. Por favor selecciona otro día.'),
-                      backgroundColor: Colors.orange,
-                      duration: Duration(seconds: 3),
-                    ),
-                  );
-                  setState(() {
-                    _fechaSeleccionada = null;
-                  });
-                  return;
-                }
-                setState(() {
-                  _fechaSeleccionada = fecha;
-                });
-                _cargarHorariosOcupados();
-              },
-              validador: (fecha) {
-                if (fecha == null) {
-                  return 'La fecha es requerida';
-                }
-                if (fecha.weekday == DateTime.sunday) {
-                  return 'No se puede agendar citas los domingos';
-                }
-                return null;
-              },
+          // Fecha
+          CampoFecha(
+            etiqueta: 'Fecha',
+            requerido: true,
+            valorInicial: _fechaSeleccionada,
+            fechaMinima: DateTime.now(),
+            fechaMaxima: DateTime.now().add(const Duration(days: 365)),
+            selectableDayPredicate: (DateTime date) {
+              // Deshabilitar domingos
+              return date.weekday != DateTime.sunday;
+            },
+            onChanged: (fecha) {
+              setState(() {
+                _fechaSeleccionada = fecha;
+                _horaSeleccionada = null; // Reset hora al cambiar fecha
+              });
+              _cargarHorariosOcupados();
+            },
+            validador: (fecha) {
+              if (fecha == null) {
+                return 'La fecha es requerida';
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 16),
+
+          // Selector de horarios disponibles
+          if (_fechaSeleccionada != null) ...[
+            Text(
+              'Horarios Disponibles',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
-            const SizedBox(height: 16),
-            CampoHora(
-              etiqueta: 'Hora',
-              requerido: true,
-              valorInicial: _horaSeleccionada,
-              onChanged: (hora) {
+            const SizedBox(height: 12),
+            SelectorHorariosAdmin(
+              horariosDisponibles: _horariosDisponibles,
+              horaSeleccionada: _horaSeleccionada != null && _fechaSeleccionada != null
+                  ? DateTime(
+                      _fechaSeleccionada!.year,
+                      _fechaSeleccionada!.month,
+                      _fechaSeleccionada!.day,
+                      _horaSeleccionada!.hour,
+                      _horaSeleccionada!.minute,
+                    )
+                  : null,
+              onHoraChanged: (horario) {
                 setState(() {
-                  _horaSeleccionada = hora;
+                  _horaSeleccionada = TimeOfDay(hour: horario.hour, minute: horario.minute);
                 });
                 _validarHorario();
               },
-              validador: (hora) {
-                if (hora == null) {
-                  return 'La hora es requerida';
-                }
-                return null;
-              },
+              cargandoHorarios: _cargandoHorarios,
+              duracionMinutos: _duracionSeleccionada.minutos,
             ),
-          ] else
-            Row(
-              children: [
-                Expanded(
-                  child: CampoFecha(
-                    etiqueta: 'Fecha',
-                    requerido: true,
-                    valorInicial: _fechaSeleccionada,
-                    fechaMinima: DateTime.now(),
-                    fechaMaxima: DateTime.now().add(const Duration(days: 365)),
-                    onChanged: (fecha) {
-                      if (fecha != null && fecha.weekday == DateTime.sunday) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('⚠️ No se atiende los domingos. Por favor selecciona otro día.'),
-                            backgroundColor: Colors.orange,
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                        setState(() {
-                          _fechaSeleccionada = null;
-                        });
-                        return;
-                      }
-                      setState(() {
-                        _fechaSeleccionada = fecha;
-                      });
-                      _cargarHorariosOcupados();
-                    },
-                    validador: (fecha) {
-                      if (fecha == null) {
-                        return 'La fecha es requerida';
-                      }
-                      if (fecha.weekday == DateTime.sunday) {
-                        return 'No se puede agendar citas los domingos';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: CampoHora(
-                    etiqueta: 'Hora',
-                    requerido: true,
-                    valorInicial: _horaSeleccionada,
-                    onChanged: (hora) {
-                      setState(() {
-                        _horaSeleccionada = hora;
-                      });
-                      _validarHorario();
-                    },
-                    validador: (hora) {
-                      if (hora == null) {
-                        return 'La hora es requerida';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
+          ],
 
           const SizedBox(height: 16),
 
@@ -696,7 +645,8 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
                   setState(() {
                     _duracionSeleccionada = valor;
                   });
-                  _validarHorario();
+                  // Recargar horarios disponibles con la nueva duración
+                  _cargarHorariosOcupados();
                 }
               },
             ),
@@ -741,7 +691,8 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
                         setState(() {
                           _duracionSeleccionada = valor;
                         });
-                        _validarHorario();
+                        // Recargar horarios disponibles con la nueva duración
+                        _cargarHorariosOcupados();
                       }
                     },
                   ),

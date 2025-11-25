@@ -396,6 +396,67 @@ class CitaServicio {
             .toList());
   }
 
+  // Obtener horarios disponibles de un psicólogo en una fecha
+  Future<List<DateTime>> obtenerHorariosDisponibles(
+    String psicologoId,
+    DateTime fecha,
+    int duracionMinutos,
+  ) async {
+    try {
+      final ocupados = await obtenerHorariosOcupados(psicologoId, fecha);
+
+      // Generar horarios disponibles de 8:00 AM a 9:30 PM
+      // Recesos: 1:00 PM - 2:00 PM y 6:00 PM - 7:00 PM
+      final List<DateTime> horariosDisponibles = [];
+
+      for (int hora = 8; hora < 22; hora++) {
+        // Excluir horas de receso
+        // Receso 1: 1:00 PM - 2:00 PM (hora 13)
+        // Receso 2: 6:00 PM - 7:00 PM (hora 18)
+        if (hora == 13 || hora == 18) {
+          continue;
+        }
+
+        for (int minuto = 0; minuto < 60; minuto += 30) {
+          final horario = DateTime(fecha.year, fecha.month, fecha.day, hora, minuto);
+          final horarioFin = horario.add(Duration(minutes: duracionMinutos));
+
+          // No permitir horarios después de 9:30 PM (21:30)
+          if (hora >= 21 && minuto >= 30) {
+            break;
+          }
+
+          // Verificar si el horario está ocupado o se solapa con alguna cita
+          bool estaOcupado = false;
+          for (var ocupado in ocupados) {
+            final inicio = ocupado['inicio'] as DateTime;
+            final fin = ocupado['fin'] as DateTime;
+
+            // Verificar solapamiento
+            bool seSolapa = !(horarioFin.isBefore(inicio) ||
+                             horario.isAfter(fin.subtract(const Duration(minutes: 1))));
+
+            if (seSolapa) {
+              estaOcupado = true;
+              break;
+            }
+          }
+
+          // Solo agregar si no está ocupado y es futuro
+          if (!estaOcupado && horario.isAfter(DateTime.now())) {
+            horariosDisponibles.add(horario);
+          }
+        }
+      }
+
+      debugPrint('📅 Horarios disponibles para ${fecha.day}/${fecha.month}: ${horariosDisponibles.length} bloques de $duracionMinutos minutos');
+      return horariosDisponibles;
+    } catch (e) {
+      debugPrint('Error al obtener horarios disponibles: $e');
+      return [];
+    }
+  }
+
   // Helper privado para convertir estado a string
   String _estadoToString(EstadoCita estado) {
     switch (estado) {

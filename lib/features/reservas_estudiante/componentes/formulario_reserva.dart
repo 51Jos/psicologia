@@ -34,7 +34,7 @@ class _FormularioReservaState extends State<FormularioReserva> {
   UsuarioModelo? _psicologoGenerico;
   DateTime? _fechaSeleccionada;
   DateTime? _horaSeleccionada;
-  DuracionCita _duracionSeleccionada = DuracionCita.minutos45;
+  final DuracionCita _duracionFija = DuracionCita.minutos30; // Duración fija de 30 minutos
   final TextEditingController _motivoController = TextEditingController();
   TipoCita _tipoSeleccionado = TipoCita.presencial;
 
@@ -139,10 +139,10 @@ class _FormularioReservaState extends State<FormularioReserva> {
       estudianteEmail: widget.estudiante.email,
       estudianteTelefono: widget.estudiante.telefono,
       estudianteCodigo: widget.estudiante.email.split('@')[0], // Código del email
-      facultad: 'Por definir', // Esto se puede mejorar
-      programa: 'Por definir', // Esto se puede mejorar
+      facultad: widget.estudiante.facultad ?? 'Por definir',
+      programa: widget.estudiante.programa ?? 'Por definir',
       fechaHora: fechaHora,
-      duracion: _duracionSeleccionada,
+      duracion: _duracionFija,
       psicologoId: _psicologoGenerico!.id,
       psicologoNombre: _psicologoGenerico!.nombreCompleto,
       motivoConsulta: _motivoController.text.trim(),
@@ -228,7 +228,6 @@ class _FormularioReservaState extends State<FormularioReserva> {
       _fechaSeleccionada = null;
       _horaSeleccionada = null;
       _horariosDisponibles = [];
-      _duracionSeleccionada = DuracionCita.minutos45;
       _tipoSeleccionado = TipoCita.presencial;
       _motivoController.clear();
     });
@@ -335,7 +334,7 @@ class _FormularioReservaState extends State<FormularioReserva> {
             SelectorFechaHora(
                 fechaSeleccionada: _fechaSeleccionada,
                 horaSeleccionada: _horaSeleccionada,
-                duracionSeleccionada: _duracionSeleccionada,
+                duracionSeleccionada: _duracionFija,
                 horariosDisponibles: _horariosDisponibles,
                 cargandoHorarios: _cargandoHorarios,
                 onFechaChanged: (fecha) {
@@ -345,12 +344,7 @@ class _FormularioReservaState extends State<FormularioReserva> {
                 onHoraChanged: (hora) {
                   setState(() => _horaSeleccionada = hora);
                 },
-                onDuracionChanged: (duracion) {
-                  setState(() {
-                    _duracionSeleccionada = duracion ?? DuracionCita.minutos45;
-                  });
-                  _cargarHorariosDisponibles();
-                },
+                onDuracionChanged: null, // Duración fija, no editable
               ),
             const SizedBox(height: 16),
 

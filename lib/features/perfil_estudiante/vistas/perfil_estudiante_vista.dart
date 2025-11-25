@@ -23,6 +23,37 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
   final _emailController = TextEditingController();
   final _telefonoController = TextEditingController();
 
+  // Estado para facultad y programa
+  String? _facultadSeleccionada;
+  String? _programaSeleccionado;
+
+  // Programas por facultad - UCSS Nueva Cajamarca
+  final Map<String, List<Map<String, String>>> _programasPorFacultad = {
+    'FC': [
+      {'valor': 'Biología', 'nombre': 'Biología'},
+      {'valor': 'Matemática', 'nombre': 'Matemática'},
+    ],
+    'FCS': [
+      {'valor': 'Enfermería', 'nombre': 'Enfermería'},
+      {'valor': 'Psicología', 'nombre': 'Psicología'},
+      {'valor': 'Obstetricia', 'nombre': 'Obstetricia'},
+    ],
+    'FEI': [
+      {'valor': 'Ingeniería Civil', 'nombre': 'Ingeniería Civil'},
+      {'valor': 'Ingeniería de Sistemas', 'nombre': 'Ingeniería de Sistemas'},
+      {'valor': 'Ingeniería Agrónoma', 'nombre': 'Ingeniería Agrónoma'},
+      {'valor': 'Ingeniería Ambiental', 'nombre': 'Ingeniería Ambiental'},
+    ],
+    'FCE': [
+      {'valor': 'Administración', 'nombre': 'Administración'},
+      {'valor': 'Contabilidad', 'nombre': 'Contabilidad'},
+      {'valor': 'Economía', 'nombre': 'Economía'},
+    ],
+    'FD': [
+      {'valor': 'Derecho', 'nombre': 'Derecho'},
+    ],
+  };
+
   // Controladores de contraseña
   final _contrasenaActualController = TextEditingController();
   final _nuevaContrasenaController = TextEditingController();
@@ -66,6 +97,8 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
         _apellidosController.text = usuario.apellidos;
         _emailController.text = usuario.email;
         _telefonoController.text = usuario.telefono ?? '';
+        _facultadSeleccionada = usuario.facultad;
+        _programaSeleccionado = usuario.programa;
         _cargando = false;
       });
     } else {
@@ -90,6 +123,8 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
       nombres: _nombresController.text,
       apellidos: _apellidosController.text,
       telefono: _telefonoController.text.isEmpty ? null : _telefonoController.text,
+      facultad: _facultadSeleccionada,
+      programa: _programaSeleccionado,
     );
 
     final exito = await _perfilServicio.actualizarPerfil(usuarioActualizado);
@@ -141,6 +176,23 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
         _confirmarContrasenaController.clear();
         setState(() => _mostrarCambioContrasena = false);
       }
+    }
+  }
+
+  String _obtenerNombreFacultad(String codigo) {
+    switch (codigo) {
+      case 'FC':
+        return 'Facultad de Ciencias';
+      case 'FCS':
+        return 'Facultad de Ciencias de la Salud';
+      case 'FEI':
+        return 'Facultad de Ingeniería';
+      case 'FCE':
+        return 'Facultad de Ciencias Económicas';
+      case 'FD':
+        return 'Facultad de Derecho';
+      default:
+        return codigo;
     }
   }
 
@@ -367,7 +419,116 @@ class _PerfilEstudianteVistaState extends State<PerfilEstudianteVista> {
                 tipoTeclado: TextInputType.phone,
                 iconoPrefijo: Icons.phone,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              // Facultad - Editable si está vacía
+              if (_usuario?.facultad == null)
+                DropdownButtonFormField<String>(
+                  value: _facultadSeleccionada,
+                  decoration: InputDecoration(
+                    labelText: 'Facultad',
+                    hintText: 'Selecciona tu facultad',
+                    prefixIcon: Icon(Icons.school_outlined, color: ColoresApp.primario),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'FC', child: Text('Facultad de Ciencias')),
+                    DropdownMenuItem(value: 'FCS', child: Text('Facultad de Ciencias de la Salud')),
+                    DropdownMenuItem(value: 'FEI', child: Text('Facultad de Ingeniería')),
+                    DropdownMenuItem(value: 'FCE', child: Text('Facultad de Ciencias Económicas')),
+                    DropdownMenuItem(value: 'FD', child: Text('Facultad de Derecho')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _facultadSeleccionada = value;
+                      _programaSeleccionado = null; // Reset programa cuando cambia facultad
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La facultad es requerida';
+                    }
+                    return null;
+                  },
+                )
+              else
+                TextFormField(
+                  initialValue: _obtenerNombreFacultad(_usuario!.facultad!),
+                  decoration: const InputDecoration(
+                    labelText: 'Facultad',
+                    prefixIcon: Icon(Icons.school),
+                  ),
+                  enabled: false,
+                  style: TextStyle(color: ColoresApp.textoGris),
+                ),
+              const SizedBox(height: 4),
+              Text(
+                _usuario?.facultad != null
+                  ? 'La facultad no se puede modificar'
+                  : 'Selecciona tu facultad',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: ColoresApp.textoGris,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Programa - Editable si está vacío
+              if (_usuario?.programa == null)
+                DropdownButtonFormField<String>(
+                  value: _programaSeleccionado,
+                  decoration: InputDecoration(
+                    labelText: 'Programa Académico',
+                    hintText: _facultadSeleccionada == null
+                      ? 'Primero selecciona una facultad'
+                      : 'Selecciona tu programa',
+                    prefixIcon: Icon(Icons.menu_book_outlined, color: ColoresApp.primario),
+                  ),
+                  items: _facultadSeleccionada == null
+                    ? []
+                    : _programasPorFacultad[_facultadSeleccionada]!
+                        .map((programa) => DropdownMenuItem<String>(
+                              value: programa['valor'],
+                              child: Text(programa['nombre']!),
+                            ))
+                        .toList(),
+                  onChanged: _facultadSeleccionada == null
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _programaSeleccionado = value;
+                        });
+                      },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El programa académico es requerido';
+                    }
+                    return null;
+                  },
+                )
+              else
+                TextFormField(
+                  initialValue: _usuario!.programa,
+                  decoration: const InputDecoration(
+                    labelText: 'Programa Académico',
+                    prefixIcon: Icon(Icons.menu_book),
+                  ),
+                  enabled: false,
+                  style: TextStyle(color: ColoresApp.textoGris),
+                ),
+              const SizedBox(height: 4),
+              Text(
+                _usuario?.programa != null
+                  ? 'El programa no se puede modificar'
+                  : 'Selecciona tu programa académico',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: ColoresApp.textoGris,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
               // Botón de guardar
               SizedBox(

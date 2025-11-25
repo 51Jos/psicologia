@@ -14,6 +14,8 @@ class UsuarioModelo {
   final String? foto;
   final String? telefono;
   final String? especialidad;
+  final String? facultad;
+  final String? programa;
   final Map<String, dynamic>? metadata;
 
   UsuarioModelo({
@@ -28,6 +30,8 @@ class UsuarioModelo {
     this.foto,
     this.telefono,
     this.especialidad,
+    this.facultad,
+    this.programa,
     this.metadata,
   });
 
@@ -59,6 +63,8 @@ class UsuarioModelo {
       foto: data['foto'],
       telefono: data['telefono'],
       especialidad: data['especialidad'],
+      facultad: data['facultad'],
+      programa: data['programa'],
       metadata: data['metadata'],
     );
   }
@@ -79,6 +85,8 @@ class UsuarioModelo {
       foto: json['foto'],
       telefono: json['telefono'],
       especialidad: json['especialidad'],
+      facultad: json['facultad'],
+      programa: json['programa'],
       metadata: json['metadata'],
     );
   }
@@ -96,6 +104,8 @@ class UsuarioModelo {
       'foto': foto,
       'telefono': telefono,
       'especialidad': especialidad,
+      'facultad': facultad,
+      'programa': programa,
       'metadata': metadata,
     };
   }
@@ -114,6 +124,8 @@ class UsuarioModelo {
       'foto': foto,
       'telefono': telefono,
       'especialidad': especialidad,
+      'facultad': facultad,
+      'programa': programa,
       'metadata': metadata,
     };
   }
@@ -143,6 +155,9 @@ class UsuarioModelo {
     DateTime? ultimoAcceso,
     String? foto,
     String? telefono,
+    String? especialidad,
+    String? facultad,
+    String? programa,
     Map<String, dynamic>? metadata,
   }) {
     return UsuarioModelo(
@@ -156,6 +171,9 @@ class UsuarioModelo {
       ultimoAcceso: ultimoAcceso ?? this.ultimoAcceso,
       foto: foto ?? this.foto,
       telefono: telefono ?? this.telefono,
+      especialidad: especialidad ?? this.especialidad,
+      facultad: facultad ?? this.facultad,
+      programa: programa ?? this.programa,
       metadata: metadata ?? this.metadata,
     );
   }

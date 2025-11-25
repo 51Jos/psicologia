@@ -4,7 +4,7 @@ import '../../../../compartidos/componentes/botones/boton_primario.dart';
 import '../../../../compartidos/tema/colores_app.dart';
 
 class FormularioRegistro extends StatefulWidget {
-  final Function(String codigo, String password, String nombres, String apellidos, String? telefono) onRegistrar;
+  final Function(String codigo, String password, String nombres, String apellidos, String? telefono, String? facultad, String? programa) onRegistrar;
   final bool cargando;
 
   const FormularioRegistro({
@@ -28,6 +28,35 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmarPassword = true;
+  String? _facultadSeleccionada;
+  String? _programaSeleccionado;
+
+  // Programas por facultad - UCSS Nueva Cajamarca
+  final Map<String, List<Map<String, String>>> _programasPorFacultad = {
+    'FC': [
+      {'valor': 'Biología', 'nombre': 'Biología'},
+      {'valor': 'Matemática', 'nombre': 'Matemática'},
+    ],
+    'FCS': [
+      {'valor': 'Enfermería', 'nombre': 'Enfermería'},
+      {'valor': 'Psicología', 'nombre': 'Psicología'},
+      {'valor': 'Obstetricia', 'nombre': 'Obstetricia'},
+    ],
+    'FEI': [
+      {'valor': 'Ingeniería Civil', 'nombre': 'Ingeniería Civil'},
+      {'valor': 'Ingeniería de Sistemas', 'nombre': 'Ingeniería de Sistemas'},
+      {'valor': 'Ingeniería Agrónoma', 'nombre': 'Ingeniería Agrónoma'},
+      {'valor': 'Ingeniería Ambiental', 'nombre': 'Ingeniería Ambiental'},
+    ],
+    'FCE': [
+      {'valor': 'Administración', 'nombre': 'Administración'},
+      {'valor': 'Contabilidad', 'nombre': 'Contabilidad'},
+      {'valor': 'Economía', 'nombre': 'Economía'},
+    ],
+    'FD': [
+      {'valor': 'Derecho', 'nombre': 'Derecho'},
+    ],
+  };
 
   @override
   void dispose() {
@@ -48,6 +77,8 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
         _nombresController.text.trim(),
         _apellidosController.text.trim(),
         _telefonoController.text.trim().isNotEmpty ? _telefonoController.text.trim() : null,
+        _facultadSeleccionada,
+        _programaSeleccionado,
       );
     }
   }
@@ -150,6 +181,70 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
                 if (value.trim().length != 9) {
                   return 'El teléfono debe tener 9 dígitos';
                 }
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // Facultad
+          DropdownButtonFormField<String>(
+            value: _facultadSeleccionada,
+            decoration: InputDecoration(
+              labelText: 'Facultad',
+              hintText: 'Selecciona tu facultad',
+              prefixIcon: Icon(Icons.school_outlined, color: ColoresApp.secundario),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'FC', child: Text('Facultad de Ciencias')),
+              DropdownMenuItem(value: 'FCS', child: Text('Facultad de Ciencias de la Salud')),
+              DropdownMenuItem(value: 'FEI', child: Text('Facultad de Ingeniería')),
+              DropdownMenuItem(value: 'FCE', child: Text('Facultad de Ciencias Económicas')),
+              DropdownMenuItem(value: 'FD', child: Text('Facultad de Derecho')),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _facultadSeleccionada = value;
+                _programaSeleccionado = null; // Reset programa cuando cambia facultad
+              });
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'La facultad es requerida';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // Programa Académico
+          DropdownButtonFormField<String>(
+            value: _programaSeleccionado,
+            decoration: InputDecoration(
+              labelText: 'Programa Académico',
+              hintText: _facultadSeleccionada == null
+                ? 'Primero selecciona una facultad'
+                : 'Selecciona tu programa',
+              prefixIcon: Icon(Icons.menu_book_outlined, color: ColoresApp.secundario),
+            ),
+            items: _facultadSeleccionada == null
+              ? []
+              : _programasPorFacultad[_facultadSeleccionada]!
+                  .map((programa) => DropdownMenuItem<String>(
+                        value: programa['valor'],
+                        child: Text(programa['nombre']!),
+                      ))
+                  .toList(),
+            onChanged: _facultadSeleccionada == null
+              ? null
+              : (value) {
+                  setState(() {
+                    _programaSeleccionado = value;
+                  });
+                },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'El programa académico es requerido';
               }
               return null;
             },
