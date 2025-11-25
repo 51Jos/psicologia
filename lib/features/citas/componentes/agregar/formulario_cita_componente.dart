@@ -233,18 +233,38 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
       _estudianteCodigoController.text = cita.estudianteCodigo ?? '';
       _estudianteEmailController.text = cita.estudianteEmail ?? '';
       _estudianteTelefonoController.text = cita.estudianteTelefono ?? '';
-      _programaController.text = cita.programa;
       _motivoController.text = cita.motivoConsulta;
       _observacionesController.text = cita.observaciones ?? '';
       _psicologoIdController.text = cita.psicologoId;
 
-      _facultadSeleccionada = cita.facultad;
+      // Manejar facultad (puede estar vacía en usuarios antiguos)
+      _facultadSeleccionada = cita.facultad.isNotEmpty ? cita.facultad : null;
+
+      // Si tiene facultad, configurar el programa
+      if (_facultadSeleccionada != null && _programasPorFacultad.containsKey(_facultadSeleccionada)) {
+        // Buscar el programa en la lista de opciones de la facultad
+        final programasDisponibles = _programasPorFacultad[_facultadSeleccionada]!;
+        final programaEncontrado = programasDisponibles.firstWhere(
+          (p) => p.valor == cita.programa,
+          orElse: () => programasDisponibles.first,
+        );
+        _programaSeleccionado = programaEncontrado.valor;
+        _programaController.text = programaEncontrado.valor;
+      } else {
+        // Si no tiene facultad o no está en el mapa, usar el valor directo
+        _programaController.text = cita.programa;
+        _programaSeleccionado = cita.programa;
+      }
+
       _duracionSeleccionada = cita.duracion;
       _tipoSeleccionado = cita.tipoCita;
       _estadoSeleccionado = cita.estado;
       _fechaSeleccionada = cita.fechaHora;
       _horaSeleccionada = TimeOfDay.fromDateTime(cita.fechaHora);
       _esPrimeraVez = cita.primeraVez;
+
+      // Cargar horarios disponibles para la fecha de la cita
+      Future.microtask(() => _cargarHorariosOcupados());
     } else {
       _psicologoIdController.text = 'default_psicologo';
       // Dejar fecha y hora vacías para que el usuario las seleccione
