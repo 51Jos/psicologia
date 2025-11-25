@@ -135,21 +135,31 @@ class _LoginFormularioState extends State<LoginFormulario> {
 
               // Botón de Registro
               Center(
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/registro');
-                  },
-                  child: RichText(
-                    text: TextSpan(
-                      style: TextStyle(
-                        fontSize: ResponsiveHelper.fontSize(context, base: 14),
-                        color: Colors.grey[700],
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/registro');
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    ),
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4,
                       children: [
-                        const TextSpan(text: '¿Eres estudiante? '),
-                        TextSpan(
-                          text: 'Regístrate aquí',
+                        Text(
+                          '¿Eres estudiante?',
                           style: TextStyle(
+                            fontSize: ResponsiveHelper.fontSize(context, base: 14),
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        Text(
+                          'Regístrate aquí',
+                          style: TextStyle(
+                            fontSize: ResponsiveHelper.fontSize(context, base: 14),
                             color: Theme.of(context).primaryColor,
                             fontWeight: FontWeight.bold,
                           ),

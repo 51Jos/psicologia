@@ -11,6 +11,7 @@ import '../componentes/agregar/formulario_cita_componente.dart';
 import '../componentes/detalle/detalle_cita_componente.dart';
 import '../../../compartidos/componentes/modal_carga.dart' show ModalCarga, EstadoModal;
 import '../../../compartidos/tema/colores_app.dart';
+import '../../autenticacion/controladores/auth_controlador.dart';
 
 class ListaCita extends StatefulWidget {
   const ListaCita({super.key});
@@ -105,29 +106,76 @@ class _ListaCitaState extends State<ListaCita> {
         gradient: ColoresApp.gradientePrimario,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Text(
-            '🏛️ Sistema de Registro de Atenciones Estudiantiles',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Gestión Integral de Consultas Psicológicas y Seguimiento Académico',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
-            ),
-            textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '🏛️ Sistema de Registro de Atenciones Estudiantiles',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Gestión Integral de Consultas Psicológicas y Seguimiento Académico',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => _cerrarSesion(),
+                icon: const Icon(Icons.logout, color: Colors.white),
+                tooltip: 'Cerrar sesión',
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  padding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _cerrarSesion() async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColoresApp.primario,
+            ),
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true && mounted) {
+      final authControlador = Provider.of<AuthControlador>(context, listen: false);
+      await authControlador.cerrarSesion(context);
+    }
   }
 
   Widget _buildControles() {
