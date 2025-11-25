@@ -24,8 +24,8 @@ class LoginCard extends StatelessWidget {
     double? altoCard = ResponsiveHelper.valor(
       context,
       mobile: altoPantalla,
-      tablet: 550,
-      desktop: 600,
+      tablet: 650,
+      desktop: 700,
     );
 
     // Contenido para móvil (solo formulario)
