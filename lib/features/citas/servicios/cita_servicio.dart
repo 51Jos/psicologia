@@ -192,6 +192,7 @@ class CitaServicio {
         // Solo considerar citas activas
         if (cita.estado != EstadoCita.cancelada && cita.estado != EstadoCita.completada) {
           horariosOcupados.add({
+            'citaId': cita.id,
             'inicio': cita.fechaHora,
             'fin': cita.fechaHoraFin,
             'estudiante': cita.nombreCompleto,

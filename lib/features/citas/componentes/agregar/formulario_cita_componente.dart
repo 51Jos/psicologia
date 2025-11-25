@@ -202,10 +202,19 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
 
     final fin = inicio.add(Duration(minutes: _duracionSeleccionada.minutos));
 
+    // Obtener ID de la cita actual (si estamos editando)
+    final citaActualId = widget.citaInicial?.id;
+
     // Buscar conflictos
     for (var horario in _horariosOcupados) {
       final ocupadoInicio = horario['inicio'] as DateTime;
       final ocupadoFin = horario['fin'] as DateTime;
+      final citaId = horario['citaId'] as String?;
+
+      // Si estamos editando, ignorar la propia cita
+      if (citaActualId != null && citaId == citaActualId) {
+        continue;
+      }
 
       // Verificar solapamiento
       if (inicio.isBefore(ocupadoFin) && fin.isAfter(ocupadoInicio)) {
