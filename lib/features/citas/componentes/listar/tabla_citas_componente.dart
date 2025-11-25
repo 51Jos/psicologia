@@ -107,13 +107,7 @@ class TablaCitasComponente extends StatelessWidget {
             DataColumn(
               label: SizedBox(
                 width: 100,
-                child: Text('N° ATENCIÓN'),
-              ),
-            ),
-            DataColumn(
-              label: SizedBox(
-                width: 100,
-                child: Text('CIM'),
+                child: Text('FECHA'),
               ),
             ),
             DataColumn(
@@ -184,12 +178,6 @@ class TablaCitasComponente extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ),
-              DataCell(
-                SizedBox(
-                  width: 100,
-                  child: Text(cita.primeraVez ? '01' : '02+'),
                 ),
               ),
               DataCell(

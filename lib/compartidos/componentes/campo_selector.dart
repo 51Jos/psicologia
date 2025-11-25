@@ -213,6 +213,7 @@ class _CampoSelectorState<T> extends State<CampoSelector<T>> {
                         size: ResponsiveHelper.valor(context, mobile: 18, tablet: 20, desktop: 22),
                         color: opcion.color ?? ColoresApp.textoGris,
                       ),
+                      const SizedBox(width: 8),
                     ],
                     Text(opcion.etiqueta),
                   ],
