@@ -634,12 +634,31 @@ class _ListaCitaState extends State<ListaCita> {
     );
   }
 
-  void _exportarDatos() {
-    _controlador.exportarDatos();
+  Future<void> _exportarDatos() async {
+    // Mostrar mensaje de carga
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Exportando datos...'),
+        content: Text('Generando archivo Excel...'),
         backgroundColor: ColoresApp.info,
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    // Exportar datos
+    final exito = await _controlador.exportarDatos();
+
+    if (!mounted) return;
+
+    // Mostrar resultado
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          exito
+              ? 'Archivo Excel exportado exitosamente'
+              : 'Error al exportar datos',
+        ),
+        backgroundColor: exito ? ColoresApp.exito : ColoresApp.error,
+        duration: const Duration(seconds: 3),
       ),
     );
   }

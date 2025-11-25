@@ -1,5 +1,10 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:excel/excel.dart';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:universal_html/html.dart' as web;
 import '../modelos/cita_modelo.dart';
 import '../modelos/filtros_modelo.dart';
 import '../servicios/cita_servicio.dart';
@@ -291,11 +296,182 @@ class CitaControlador extends ChangeNotifier {
     }
   }
 
-  // Exportar datos (placeholder)
-  Future<void> exportarDatos() async {
-    // TODO: Implementar exportación de datos
-    // Podría ser a CSV, Excel, PDF, etc.
-    debugPrint('Exportando datos...');
+  // Exportar datos a Excel
+  Future<bool> exportarDatos() async {
+    try {
+      debugPrint('📊 Iniciando exportación de datos...');
+
+      // Crear nuevo archivo Excel
+      final excel = Excel.createExcel();
+      final sheet = excel['Registro de Citas'];
+
+      // Eliminar la hoja por defecto
+      excel.delete('Sheet1');
+
+      // Definir estilos
+      final headerStyle = CellStyle(
+        bold: true,
+        backgroundColorHex: ExcelColor.blue,
+        fontColorHex: ExcelColor.white,
+        horizontalAlign: HorizontalAlign.Center,
+        verticalAlign: VerticalAlign.Center,
+      );
+
+      final dataCellStyle = CellStyle(
+        verticalAlign: VerticalAlign.Center,
+      );
+
+      // Agregar encabezados
+      final headers = [
+        'Código',
+        'Estudiante',
+        'Apellidos',
+        'Facultad',
+        'Programa',
+        'Fecha',
+        'Hora',
+        'Duración',
+        'Tipo',
+        'Estado',
+        'Motivo',
+        'Primera Vez',
+      ];
+
+      for (int i = 0; i < headers.length; i++) {
+        final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        cell.value = TextCellValue(headers[i]);
+        cell.cellStyle = headerStyle;
+      }
+
+      // Agregar datos de las citas filtradas
+      int rowIndex = 1;
+      final dateFormat = DateFormat('dd/MM/yyyy');
+      final timeFormat = DateFormat('HH:mm');
+
+      for (final cita in _citas) {
+        final row = [
+          cita.estudianteCodigo ?? 'N/A',
+          cita.estudianteNombre,
+          cita.estudianteApellidos,
+          _obtenerNombreFacultad(cita.facultad),
+          cita.programa,
+          dateFormat.format(cita.fechaHora),
+          timeFormat.format(cita.fechaHora),
+          '${cita.duracionEnMinutos} min',
+          _obtenerNombreTipo(cita.tipoCita),
+          _obtenerNombreEstado(cita.estado),
+          cita.motivoConsulta,
+          cita.primeraVez ? 'Sí' : 'No',
+        ];
+
+        for (int i = 0; i < row.length; i++) {
+          final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: rowIndex));
+          cell.value = TextCellValue(row[i]);
+          cell.cellStyle = dataCellStyle;
+        }
+
+        rowIndex++;
+      }
+
+      // Ajustar ancho de columnas
+      sheet.setColumnWidth(0, 15); // Código
+      sheet.setColumnWidth(1, 20); // Estudiante
+      sheet.setColumnWidth(2, 25); // Apellidos
+      sheet.setColumnWidth(3, 30); // Facultad
+      sheet.setColumnWidth(4, 35); // Programa
+      sheet.setColumnWidth(5, 12); // Fecha
+      sheet.setColumnWidth(6, 10); // Hora
+      sheet.setColumnWidth(7, 12); // Duración
+      sheet.setColumnWidth(8, 15); // Tipo
+      sheet.setColumnWidth(9, 15); // Estado
+      sheet.setColumnWidth(10, 50); // Motivo
+      sheet.setColumnWidth(11, 12); // Primera Vez
+
+      // Guardar archivo
+      final bytes = excel.encode();
+      if (bytes == null) {
+        debugPrint('❌ Error al generar el archivo Excel');
+        return false;
+      }
+
+      // Generar nombre de archivo con fecha
+      final now = DateTime.now();
+      final fileName = 'Registro_Citas_${DateFormat('yyyyMMdd_HHmmss').format(now)}.xlsx';
+
+      if (kIsWeb) {
+        // Para web: descargar directamente
+        final blob = web.Blob([bytes], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        final url = web.Url.createObjectUrlFromBlob(blob);
+        final anchor = web.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        web.Url.revokeObjectUrl(url);
+
+        debugPrint('✅ Archivo Excel generado para web: $fileName');
+      } else {
+        // Para móvil/desktop: guardar en descargas
+        final directory = await getApplicationDocumentsDirectory();
+        final filePath = '${directory.path}/$fileName';
+        final file = File(filePath);
+        await file.writeAsBytes(bytes);
+
+        debugPrint('✅ Archivo Excel guardado en: $filePath');
+      }
+
+      debugPrint('📊 Exportación completada: ${_citas.length} registros exportados');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Error al exportar datos: $e');
+      return false;
+    }
+  }
+
+  // Helper para obtener nombre de facultad
+  String _obtenerNombreFacultad(String codigo) {
+    switch (codigo) {
+      case 'FC':
+        return 'Facultad de Ciencias';
+      case 'FI':
+        return 'Facultad de Ingeniería';
+      case 'FCS':
+        return 'Facultad de Ciencias de la Salud';
+      case 'FCE':
+        return 'Facultad de Ciencias Económicas';
+      case 'FD':
+        return 'Facultad de Derecho';
+      default:
+        return codigo;
+    }
+  }
+
+  // Helper para obtener nombre de tipo de cita
+  String _obtenerNombreTipo(TipoCita tipo) {
+    switch (tipo) {
+      case TipoCita.presencial:
+        return 'Presencial';
+      case TipoCita.virtual:
+        return 'Virtual';
+      case TipoCita.telefonica:
+        return 'Telefónica';
+    }
+  }
+
+  // Helper para obtener nombre de estado
+  String _obtenerNombreEstado(EstadoCita estado) {
+    switch (estado) {
+      case EstadoCita.programada:
+        return 'Programada';
+      case EstadoCita.confirmada:
+        return 'Confirmada';
+      case EstadoCita.enCurso:
+        return 'En Curso';
+      case EstadoCita.completada:
+        return 'Completada';
+      case EstadoCita.cancelada:
+        return 'Cancelada';
+      case EstadoCita.noAsistio:
+        return 'No Asistió';
+    }
   }
 
   // Limpiar error
