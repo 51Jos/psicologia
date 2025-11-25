@@ -24,8 +24,8 @@ class LoginCard extends StatelessWidget {
     double? altoCard = ResponsiveHelper.valor(
       context,
       mobile: altoPantalla,
-      tablet: 650,
-      desktop: 700,
+      tablet: 720,
+      desktop: 750,
     );
 
     // Contenido para móvil (solo formulario)
@@ -62,7 +62,7 @@ class LoginCard extends StatelessWidget {
         height: altoCard,
         constraints: const BoxConstraints(
           maxWidth: 1000,
-          maxHeight: 600,
+          maxHeight: 750,
         ),
         margin: EdgeInsets.all(
           ResponsiveHelper.valor(context, mobile: 16, desktop: 32),
