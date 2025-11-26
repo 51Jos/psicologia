@@ -109,6 +109,7 @@ class TarjetasCitasComponente extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Header de la tarjeta
             Row(
@@ -140,18 +141,15 @@ class TarjetasCitasComponente extends StatelessWidget {
             const Divider(color: Color(0xFFE2E8F0), height: 1),
             const SizedBox(height: 8),
             // Información de la cita (compacta)
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInfoRow('Programa:', cita.programa),
-                    _buildInfoRow('Motivo:', cita.motivoConsulta),
-                    _buildInfoRow('Atención:', '${cita.primeraVez ? "#01" : "#02+"} - ${DateFormat('dd/MM/yyyy').format(cita.fechaHora)}'),
-                    _buildInfoRow('Turno:', _obtenerTurno(cita.fechaHora)),
-                  ],
-                ),
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildInfoRow('Programa:', cita.programa),
+                _buildInfoRow('Motivo:', cita.motivoConsulta),
+                _buildInfoRow('Atención:', '${cita.primeraVez ? "#01" : "#02+"} - ${DateFormat('dd/MM/yyyy').format(cita.fechaHora)}'),
+                _buildInfoRow('Turno:', _obtenerTurno(cita.fechaHora)),
+              ],
             ),
             const SizedBox(height: 8),
             const Divider(color: Color(0xFFE2E8F0), height: 1),
