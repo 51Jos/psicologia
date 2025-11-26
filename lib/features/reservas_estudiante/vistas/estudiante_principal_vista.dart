@@ -29,9 +29,14 @@ class _EstudiantePrincipalVistaState extends State<EstudiantePrincipalVista> {
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _indiceActual,
           onTap: (index) {
-            setState(() {
-              _indiceActual = index;
-            });
+            if (index == 2) {
+              // Botón de cerrar sesión
+              _cerrarSesion(context);
+            } else {
+              setState(() {
+                _indiceActual = index;
+              });
+            }
           },
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
@@ -48,6 +53,10 @@ class _EstudiantePrincipalVistaState extends State<EstudiantePrincipalVista> {
               icon: Icon(Icons.person_outline),
               activeIcon: Icon(Icons.person),
               label: 'Perfil',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.logout),
+              label: 'Salir',
             ),
           ],
         ),

@@ -576,6 +576,22 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
               cargandoHorarios: _cargandoHorarios,
               duracionMinutos: _duracionSeleccionada.minutos,
             ),
+            const SizedBox(height: 12),
+
+            // Botón para seleccionar hora manualmente
+            Center(
+              child: TextButton.icon(
+                onPressed: _mostrarSelectorHorarioManual,
+                icon: const Icon(Icons.access_time, size: 18),
+                label: Text(
+                  esMovil ? 'Seleccionar hora' : 'Seleccionar horario manualmente',
+                  style: const TextStyle(fontSize: 13),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: ColoresApp.primario,
+                ),
+              ),
+            ),
           ],
 
           const SizedBox(height: 16),
@@ -979,6 +995,23 @@ class _FormularioCitaComponenteState extends State<FormularioCitaComponente> {
         );
       },
     );
+  }
+
+  void _mostrarSelectorHorarioManual() async {
+    final horarioSeleccionado = await showTimePicker(
+      context: context,
+      initialTime: _horaSeleccionada ?? const TimeOfDay(hour: 8, minute: 0),
+      helpText: 'Seleccionar horario',
+      cancelText: 'Cancelar',
+      confirmText: 'Aceptar',
+    );
+
+    if (horarioSeleccionado != null) {
+      setState(() {
+        _horaSeleccionada = horarioSeleccionado;
+      });
+      _validarHorario();
+    }
   }
 
   void _guardarCita() async {
