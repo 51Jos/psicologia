@@ -5,6 +5,7 @@ import 'package:psicologia/features/citas/vistas/lista_cita.dart';
 import 'package:psicologia/features/citas/vistas/formulario_cita_vista.dart';
 import 'package:psicologia/features/reservas_estudiante/vistas/estudiante_principal_vista.dart';
 import 'package:psicologia/features/perfil/vistas/perfil_vista.dart';
+import '../compartidos/widgets/auth_wrapper.dart';
 
 class RutasApp {
   // Prevenir instanciación
@@ -46,13 +47,18 @@ class RutasApp {
 
   // Mapa de rutas estáticas
   static Map<String, WidgetBuilder> get rutas => {
+    // Rutas públicas
     login: (_) => const LoginVista(),
     registro: (_) => const RegistroVista(),
-    perfil: (_) => const PerfilVista(),
-    agendarCita: (_) => const FormularioCitaVista(),
-    listaAtenciones: (_) => const ListaCita(),
-    reservasEstudiante: (_) => const EstudiantePrincipalVista(),
-    dashboardEstudiante: (_) => const EstudiantePrincipalVista(),
+
+    // Rutas protegidas para psicólogo/admin
+    perfil: (_) => const PsicologoAuthWrapper(child: PerfilVista()),
+    agendarCita: (_) => const PsicologoAuthWrapper(child: FormularioCitaVista()),
+    listaAtenciones: (_) => const PsicologoAuthWrapper(child: ListaCita()),
+
+    // Rutas protegidas para estudiante
+    reservasEstudiante: (_) => const EstudianteAuthWrapper(child: EstudiantePrincipalVista()),
+    dashboardEstudiante: (_) => const EstudianteAuthWrapper(child: EstudiantePrincipalVista()),
     //registrarAtencion: (_) => const RegistrarAtencionVista(),
     //listaCitas: (_) => const ListaCitasVista(),
     //agendarCita: (_) => const AgendarCitaVista(),
