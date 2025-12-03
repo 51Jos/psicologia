@@ -436,7 +436,7 @@ class _ListaCitaState extends State<ListaCita> {
                 child: FormularioCitaComponente(
                   citaInicial: cita,
                   onGuardar: (nuevaCita) async {
-                    // Guardar referencia al BuildContext
+                    // Guardar referencia al BuildContext del diálogo
                     final dialogContext = context;
 
                     // Guardar en Firebase
@@ -446,8 +446,8 @@ class _ListaCitaState extends State<ListaCita> {
 
                     if (!dialogContext.mounted) return;
 
-                    // Cerrar el modal de carga
-                    Navigator.of(dialogContext, rootNavigator: false).pop();
+                    // Cerrar el modal de carga que abrió el formulario
+                    Navigator.pop(dialogContext);
 
                     if (exito) {
                       // Mostrar modal de éxito
@@ -464,8 +464,8 @@ class _ListaCitaState extends State<ListaCita> {
                       await Future.delayed(const Duration(milliseconds: 1500));
 
                       if (dialogContext.mounted) {
-                        Navigator.of(dialogContext, rootNavigator: false).pop(); // Cerrar modal de éxito
-                        Navigator.of(dialogContext, rootNavigator: false).pop(); // Cerrar formulario
+                        Navigator.pop(dialogContext); // Cerrar modal de éxito
+                        Navigator.pop(dialogContext); // Cerrar formulario
                       }
                     } else {
                       // Mostrar modal de error
